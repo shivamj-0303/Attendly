@@ -1,0 +1,216 @@
+name: Production Deployment
+
+on:
+  push:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '17'
+
+jobs:
+  # Build and Deploy Backend
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build Backend
+        run: |
+          cd backend
+          mvn clean package -DskipTests
+
+      - name: Deploy to Render
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+  # Build and Upload Mobile APK
+  build-and-upload-apk:
+    runs-on: ubuntu-latest
+    outputs:
+      apk-url: ${{ steps.build.outputs.apk-url }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: mobile-app/package-lock.json
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          cd mobile-app
+          npm ci
+
+      - name: Build Production APK
+        id: build
+        run: |
+          cd mobile-app
+          
+          # Start EAS build for production
+          BUILD_ID=$(eas build --platform android --profile production --non-interactive --json | jq -r '.[0].id')
+          echo "Build ID: $BUILD_ID"
+          
+          # Wait for build to complete and get download URL
+          echo "Waiting for build to complete..."
+          while true; do
+            STATUS=$(eas build:view $BUILD_ID --json | jq -r '.status')
+            echo "Build status: $STATUS"
+            
+            if [ "$STATUS" = "finished" ]; then
+              APK_URL=$(eas build:view $BUILD_ID --json | jq -r '.artifacts.buildUrl')
+              echo "apk-url=$APK_URL" >> $GITHUB_OUTPUT
+              echo "✅ Build completed! APK URL: $APK_URL"
+              break
+            elif [ "$STATUS" = "errored" ] || [ "$STATUS" = "canceled" ]; then
+              echo "❌ Build failed with status: $STATUS"
+              exit 1
+            fi
+            
+            sleep 30
+          done
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Download APK
+        run: |
+          cd mobile-app
+          # Download the APK from EAS
+          wget -O attendly.apk "${{ steps.build.outputs.apk-url }}"
+          ls -lh attendly.apk
+
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: production-apk
+          path: mobile-app/attendly.apk
+          retention-days: 90
+
+  # Deploy Unified App (Landing Page + Admin Panel) with APK
+  deploy-unified-app:
+    runs-on: ubuntu-latest
+    needs: [build-and-upload-apk]
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: production-apk
+          path: landing-page/public/downloads/
+
+      - name: Verify APK
+        run: |
+          cd landing-page/public/downloads/
+          ls -lh attendly.apk
+
+      - name: Deploy Unified App to Vercel Production
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_LANDING_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./landing-page
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+        env:
+          VITE_API_URL: https://attendly-backend.onrender.com/api
+
+  # Create Deployment Summary
+  deployment-summary:
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, build-and-upload-apk, deploy-unified-app]
+    if: always()
+    steps:
+      - name: Create Deployment Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const backendStatus = '${{ needs.deploy-backend.result }}';
+            const mobileStatus = '${{ needs.build-and-upload-apk.result }}';
+            const appStatus = '${{ needs.deploy-unified-app.result }}';
+            const appUrl = '${{ needs.deploy-unified-app.outputs.deployment-url }}';
+            const apkUrl = '${{ needs.build-and-upload-apk.outputs.apk-url }}';
+            
+            const statusIcon = (status) => {
+              if (status === 'success') return '✅';
+              if (status === 'failure') return '❌';
+              if (status === 'skipped') return '⏭️';
+              return '⏳';
+            };
+            
+            const summary = `# 🚀 Production Deployment Complete
+            
+            ## Deployment Status
+            
+            | Component | Status | URL |
+            |-----------|--------|-----|
+            | Backend API | ${statusIcon(backendStatus)} | https://attendly-backend.onrender.com/api |
+            | Mobile APK | ${statusIcon(mobileStatus)} | [Download APK](${apkUrl}) |
+            | Unified Web App | ${statusIcon(appStatus)} | ${appUrl} |
+            
+            ## 📱 Mobile App
+            
+            - **APK Built**: ${statusIcon(mobileStatus)}
+            - **Download URL**: ${apkUrl || 'Check Expo Dashboard'}
+            - **Uploaded to App**: ${statusIcon(appStatus)}
+            
+            ## 🌐 Live URLs
+            
+            1. **Landing Page**: ${appUrl} (Users can download APK here)
+            2. **Admin Panel**: ${appUrl}/admin (Admin login and dashboard)
+            3. **Backend API**: https://attendly-backend.onrender.com/api
+            
+            ## ✅ Post-Deployment Checks
+            
+            - [ ] Visit landing page and verify APK download works
+            - [ ] Click "Admin Panel" button and test login
+            - [ ] Download and test mobile APK
+            - [ ] Verify all services are connected
+            
+            ---
+            
+            *Deployed at ${new Date().toISOString()}*
+            *Commit: ${context.sha.substring(0, 7)}*
+            `;
+            
+            // Create issue comment for main branch push
+            const commits = await github.rest.repos.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              per_page: 1
+            });
+            
+            if (commits.data.length > 0) {
+              const commit = commits.data[0];
+              await github.rest.repos.createCommitComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                body: summary
+              });
+            }
+            
+            // Also output to workflow summary
+            await core.summary
+              .addRaw(summary)
+              .write();

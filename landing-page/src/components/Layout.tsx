@@ -15,7 +15,7 @@ export default function Layout() {
     authService.logout()
     logout()
     toast.success('Logged out successfully')
-    navigate('/login')
+    void navigate('/login')
   }
 
   return (

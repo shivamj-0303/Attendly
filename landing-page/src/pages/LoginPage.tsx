@@ -23,13 +23,16 @@ export default function LoginPage() {
           phone: '',
           role: data.role,
         },
-        data.token
+        data.token,
       )
       toast.success('Login successful!')
-      navigate('/admin/dashboard')
+      void navigate('/admin/dashboard')
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Login failed')
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : 'Login failed'
+      toast.error(errorMessage || 'Login failed')
     },
   })
 
@@ -99,7 +102,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link to="/admin/signup" className="text-blue-600 hover:text-blue-700 font-medium">
             Sign up
           </Link>

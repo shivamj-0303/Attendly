@@ -23,13 +23,16 @@ export default function SignupPage() {
           phone: '',
           role: data.role,
         },
-        data.token
+        data.token,
       )
       toast.success('Account created successfully!')
-      navigate('/admin/dashboard')
+      void navigate('/admin/dashboard')
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Signup failed')
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : 'Signup failed'
+      toast.error(errorMessage || 'Signup failed')
     },
   })
 

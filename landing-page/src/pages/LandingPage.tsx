@@ -1,5 +1,5 @@
-import { Download, Shield, Clock, Users, BarChart3, Smartphone, CheckCircle, LogIn } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Download, Shield, Clock, Users, BarChart3, Smartphone, CheckCircle, LogIn } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function LandingPage() {
   return (
@@ -323,5 +323,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
-  );
+  )
 }

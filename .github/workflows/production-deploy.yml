@@ -127,12 +127,12 @@ jobs:
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_LANDING_PROJECT_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
           working-directory: ./landing-page
           scope: ${{ secrets.VERCEL_ORG_ID }}
         env:
-          VITE_API_URL: https://attendly-backend.onrender.com/api
+          VITE_API_BASE_URL: https://attendly-backend.onrender.com/api
 
   # Create Deployment Summary
   deployment-summary:

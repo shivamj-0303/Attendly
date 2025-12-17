@@ -1,0 +1,243 @@
+name: PR Validation & Preview
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and Test Backend
+        run: |
+          cd backend
+          mvn clean verify
+        continue-on-error: false
+
+      - name: Build JAR for Preview
+        if: success()
+        run: |
+          cd backend
+          mvn clean package -DskipTests
+
+      - name: Create Preview Comment - Backend
+        uses: actions/github-script@v7
+        if: success()
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const branchName = context.payload.pull_request.head.ref;
+            
+            const comment = `## 🔨 Backend Build Status
+            
+            ✅ **Build Successful!**
+            
+            - ✅ Tests Passed
+            - ✅ JAR Created
+            - 📦 Artifact: \`attendly-backend-1.0.0.jar\`
+            
+            ### 🚀 Deploy to Render for Testing
+            To test this PR on a live environment:
+            1. Go to [Render Dashboard](https://dashboard.render.com)
+            2. Create a new Web Service from branch \`${branchName}\`
+            3. Or deploy to existing preview service
+            
+            ---
+            *Build completed at ${new Date().toISOString()}*`;
+            
+            github.rest.issues.createComment({
+              issue_number: prNumber,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            })
+      
+      - name: Comment on Failure
+        uses: actions/github-script@v7
+        if: failure()
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Backend build failed!** Please check the logs and fix the errors.'
+            })
+
+  validate-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: landing-page/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd landing-page
+          npm ci
+
+      - name: Lint
+        run: |
+          cd landing-page
+          npm run lint
+        continue-on-error: false
+
+      - name: Build
+        run: |
+          cd landing-page
+          npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://attendly-backend.onrender.com/api' }}
+
+  deploy-preview:
+    needs: [validate-backend, validate-frontend]
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Deploy to Vercel Preview
+        uses: amondnet/vercel-action@v25
+        id: vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./landing-page
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+          github-comment: false
+
+      - name: Create Preview Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const branchName = context.payload.pull_request.head.ref;
+            const previewUrl = '${{ steps.vercel-deploy.outputs.preview-url }}';
+            const sha = context.sha.substring(0, 7);
+            
+            const comment = `## 🚀 Preview Deployment Ready!
+            
+            Your changes are deployed and ready for testing!
+            
+            ### 🔗 Live Preview URLs
+            
+            | Environment | URL | Status |
+            |------------|-----|--------|
+            | **Frontend Preview** | [${previewUrl}](${previewUrl}) | ✅ Deployed |
+            | **Backend API** | [Production API](https://attendly-backend.onrender.com/api/health) | ⚠️ Using Production |
+            
+            ### 📋 What's in this PR?
+            
+            - **Branch**: \`${branchName}\`
+            - **Commit**: \`${sha}\`
+            - **Build**: ✅ Passed
+            - **Tests**: ✅ Passed
+            
+            ### 🧪 How to Test
+            
+            1. Click the **Frontend Preview** link above
+            2. Test all the changes in this PR
+            3. Verify everything works as expected
+            4. Leave feedback below
+            
+            ### 📝 Important Notes
+            
+            - ⚡ This preview uses the **production backend API**
+            - 🔄 Preview updates automatically on new commits
+            - 🗑️ Preview will be deleted after PR is merged/closed
+            
+            ---
+            
+            <details>
+            <summary>📊 Deployment Details</summary>
+            
+            - Build Time: ${new Date().toISOString()}
+            - Node Version: 20.x
+            - Framework: Vite + React
+            - Deployment: Vercel Edge Network
+            
+            </details>
+            
+            ---
+            
+            **Ready to merge?** Make sure:
+            - [ ] Preview works correctly
+            - [ ] All tests pass
+            - [ ] No console errors
+            - [ ] Responsive on mobile
+            `;
+            
+            // Find existing preview comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const existingComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🚀 Preview Deployment Ready')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: comment
+              });
+            }
+      
+      - name: Comment on Failure
+        uses: actions/github-script@v7
+        if: failure()
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Preview deployment failed!** Please check the logs.'
+            })

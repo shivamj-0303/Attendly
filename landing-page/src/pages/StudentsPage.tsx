@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, Search, Plus, Trash2 } from 'lucide-react'
 import api from '@/lib/api'
 import { toast } from 'react-hot-toast'
+import type { AxiosError } from 'axios'
 
 interface Student {
   id: number
@@ -14,6 +15,19 @@ interface Student {
   isActive: boolean
 }
 
+interface Class {
+  id: number
+  name: string
+  semester: number
+  year: number
+  departmentId: number
+  isActive: boolean
+}
+
+interface ErrorResponse {
+  message?: string
+}
+
 export default function StudentsPage() {
   const { classId } = useParams()
   const navigate = useNavigate()
@@ -21,21 +35,21 @@ export default function StudentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const { data: classData } = useQuery({
+  const { data: classData } = useQuery<Class>({
     queryKey: ['class', classId],
     queryFn: async () => {
-      const res = await api.get(`/admin/classes/${classId}`)
+      const res = await api.get<Class>(`/admin/classes/${classId}`)
       return res.data
     },
   })
 
-  const { data: students = [], isLoading } = useQuery({
+  const { data: students = [], isLoading } = useQuery<Student[]>({
     queryKey: ['students', classId, searchQuery],
     queryFn: async () => {
       const url = searchQuery
         ? `/admin/students/search?q=${encodeURIComponent(searchQuery)}&classId=${classId}`
         : `/admin/students/class/${classId}`
-      const res = await api.get(url)
+      const res = await api.get<Student[]>(url)
       return res.data
     },
   })
@@ -46,9 +60,9 @@ export default function StudentsPage() {
     },
     onSuccess: () => {
       toast.success('Student deleted successfully!')
-      queryClient.invalidateQueries({ queryKey: ['students'] })
+      void queryClient.invalidateQueries({ queryKey: ['students'] })
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       toast.error(error.response?.data?.message || 'Failed to delete student')
     },
   })
@@ -99,7 +113,7 @@ export default function StudentsPage() {
           <div className="text-center py-12">Loading...</div>
         ) : students.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600">No students found. Click "Add Student" to create one.</p>
+            <p className="text-gray-600">No students found. Click &quot;Add Student&quot; to create one.</p>
           </div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
@@ -154,12 +168,12 @@ export default function StudentsPage() {
 
       {showAddModal && classData && (
         <AddStudentModal
-          classId={classId!}
+          classId={classId ?? ''}
           departmentId={classData.departmentId}
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             setShowAddModal(false)
-            queryClient.invalidateQueries({ queryKey: ['students'] })
+            void queryClient.invalidateQueries({ queryKey: ['students'] })
           }}
         />
       )}
@@ -185,19 +199,19 @@ function AddStudentModal({
     phone: '',
     rollNumber: '',
     classId: Number(classId),
-    departmentId: departmentId,
+    departmentId,
   })
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await api.post('/admin/students', data)
+      const res = await api.post<Student>('/admin/students', data)
       return res.data
     },
     onSuccess: () => {
       toast.success('Student added successfully!')
       onSuccess()
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       toast.error(error.response?.data?.message || 'Failed to add student')
     },
   })
@@ -206,7 +220,7 @@ function AddStudentModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Add Student</h2>
-        <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(formData) }} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); void mutation.mutate(formData) }} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Roll Number *</label>
             <input

@@ -4,22 +4,39 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
+interface Department {
+  id: number
+  name: string
+  code: string
+  description: string
+  isActive: boolean
+}
+
+interface Teacher {
+  id: number
+  name: string
+  email: string
+  phone: string
+  departmentId: number
+  isActive: boolean
+}
+
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
 
-  const { data: departments = [] } = useQuery({
+  const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ['departments'],
     queryFn: async () => {
-      const res = await api.get('/admin/departments')
+      const res = await api.get<Department[]>('/admin/departments')
       return res.data
     },
   })
 
-  const { data: teachers = [] } = useQuery({
+  const { data: teachers = [] } = useQuery<Teacher[]>({
     queryKey: ['teachers'],
     queryFn: async () => {
-      const res = await api.get('/admin/teachers')
+      const res = await api.get<Teacher[]>('/admin/teachers')
       return res.data
     },
   })

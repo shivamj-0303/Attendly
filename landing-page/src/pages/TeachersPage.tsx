@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, Search, Plus, Trash2 } from 'lucide-react'
 import api from '@/lib/api'
 import { toast } from 'react-hot-toast'
+import type { AxiosError } from 'axios'
 
 interface Teacher {
   id: number
@@ -13,6 +14,18 @@ interface Teacher {
   isActive: boolean
 }
 
+interface Department {
+  id: number
+  name: string
+  code: string
+  description: string
+  isActive: boolean
+}
+
+interface ErrorResponse {
+  message?: string
+}
+
 export default function TeachersPage() {
   const { id: departmentId } = useParams()
   const navigate = useNavigate()
@@ -20,21 +33,21 @@ export default function TeachersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const { data: department } = useQuery({
+  const { data: department } = useQuery<Department>({
     queryKey: ['department', departmentId],
     queryFn: async () => {
-      const res = await api.get(`/admin/departments/${departmentId}`)
+      const res = await api.get<Department>(`/admin/departments/${departmentId}`)
       return res.data
     },
   })
 
-  const { data: teachers = [], isLoading } = useQuery({
+  const { data: teachers = [], isLoading } = useQuery<Teacher[]>({
     queryKey: ['teachers', departmentId, searchQuery],
     queryFn: async () => {
       const url = searchQuery
         ? `/admin/teachers/search?q=${encodeURIComponent(searchQuery)}&departmentId=${departmentId}`
         : `/admin/teachers/department/${departmentId}`
-      const res = await api.get(url)
+      const res = await api.get<Teacher[]>(url)
       return res.data
     },
   })
@@ -45,9 +58,9 @@ export default function TeachersPage() {
     },
     onSuccess: () => {
       toast.success('Teacher deleted successfully!')
-      queryClient.invalidateQueries({ queryKey: ['teachers'] })
+      void queryClient.invalidateQueries({ queryKey: ['teachers'] })
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       toast.error(error.response?.data?.message || 'Failed to delete teacher')
     },
   })
@@ -98,7 +111,7 @@ export default function TeachersPage() {
           <div className="text-center py-12">Loading...</div>
         ) : teachers.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600">No teachers found. Click "Add Teacher" to create one.</p>
+            <p className="text-gray-600">No teachers found. Click &quot;Add Teacher&quot; to create one.</p>
           </div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
@@ -147,11 +160,11 @@ export default function TeachersPage() {
 
       {showAddModal && (
         <AddTeacherModal
-          departmentId={departmentId!}
+          departmentId={departmentId ?? ''}
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             setShowAddModal(false)
-            queryClient.invalidateQueries({ queryKey: ['teachers'] })
+            void queryClient.invalidateQueries({ queryKey: ['teachers'] })
           }}
         />
       )}
@@ -178,14 +191,14 @@ function AddTeacherModal({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await api.post('/admin/teachers', data)
+      const res = await api.post<Teacher>('/admin/teachers', data)
       return res.data
     },
     onSuccess: () => {
       toast.success('Teacher added successfully!')
       onSuccess()
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       toast.error(error.response?.data?.message || 'Failed to add teacher')
     },
   })
@@ -194,7 +207,7 @@ function AddTeacherModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Add Teacher</h2>
-        <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(formData) }} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); void mutation.mutate(formData) }} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
             <input

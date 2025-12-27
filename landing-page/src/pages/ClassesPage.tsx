@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, Search, Plus } from 'lucide-react'
 import api from '@/lib/api'
 import { toast } from 'react-hot-toast'
+import type { AxiosError } from 'axios'
 
 interface Class {
   id: number
@@ -13,6 +14,18 @@ interface Class {
   isActive: boolean
 }
 
+interface Department {
+  id: number
+  name: string
+  code: string
+  description: string
+  isActive: boolean
+}
+
+interface ErrorResponse {
+  message?: string
+}
+
 export default function ClassesPage() {
   const { id: departmentId } = useParams()
   const navigate = useNavigate()
@@ -20,21 +33,21 @@ export default function ClassesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const { data: department } = useQuery({
+  const { data: department } = useQuery<Department>({
     queryKey: ['department', departmentId],
     queryFn: async () => {
-      const res = await api.get(`/admin/departments/${departmentId}`)
+      const res = await api.get<Department>(`/admin/departments/${departmentId}`)
       return res.data
     },
   })
 
-  const { data: classes = [], isLoading } = useQuery({
+  const { data: classes = [], isLoading } = useQuery<Class[]>({
     queryKey: ['classes', departmentId, searchQuery],
     queryFn: async () => {
       const url = searchQuery
         ? `/admin/classes/search?q=${encodeURIComponent(searchQuery)}&departmentId=${departmentId}`
         : `/admin/classes/department/${departmentId}`
-      const res = await api.get(url)
+      const res = await api.get<Class[]>(url)
       return res.data
     },
   })
@@ -84,7 +97,7 @@ export default function ClassesPage() {
         <div className="text-center py-12">Loading...</div>
       ) : classes.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-600">No classes found. Click "Add Class" to create one.</p>
+          <p className="text-gray-600">No classes found. Click &quot;Add Class&quot; to create one.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -107,11 +120,11 @@ export default function ClassesPage() {
 
       {showAddModal && (
         <AddClassModal
-          departmentId={departmentId!}
+          departmentId={departmentId ?? ''}
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             setShowAddModal(false)
-            queryClient.invalidateQueries({ queryKey: ['classes'] })
+            void queryClient.invalidateQueries({ queryKey: ['classes'] })
           }}
         />
       )}
@@ -137,14 +150,14 @@ function AddClassModal({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await api.post('/admin/classes', data)
+      const res = await api.post<Class>('/admin/classes', data)
       return res.data
     },
     onSuccess: () => {
       toast.success('Class added successfully!')
       onSuccess()
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       toast.error(error.response?.data?.message || 'Failed to add class')
     },
   })
@@ -153,7 +166,7 @@ function AddClassModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Add Class</h2>
-        <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(formData) }} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); void mutation.mutate(formData) }} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Class Name *</label>
             <input

@@ -21,21 +21,21 @@ export default function StaffPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all')
 
-  const { data: departments = [] } = useQuery({
+  const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ['departments'],
     queryFn: async () => {
-      const res = await api.get('/admin/departments')
+      const res = await api.get<Department[]>('/admin/departments')
       return res.data
     },
   })
 
-  const { data: allTeachers = [], isLoading } = useQuery({
+  const { data: allTeachers = [], isLoading } = useQuery<Teacher[]>({
     queryKey: ['all-teachers', searchQuery],
     queryFn: async () => {
       const url = searchQuery
         ? `/admin/teachers/search?q=${encodeURIComponent(searchQuery)}`
         : '/admin/teachers'
-      const res = await api.get(url)
+      const res = await api.get<Teacher[]>(url)
       return res.data
     },
   })

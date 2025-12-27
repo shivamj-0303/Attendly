@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Search, Plus } from 'lucide-react'
 import api from '@/lib/api'
 import { toast } from 'react-hot-toast'
+import type { AxiosError } from 'axios'
 
 interface Department {
   id: number
@@ -13,19 +14,23 @@ interface Department {
   isActive: boolean
 }
 
+interface ErrorResponse {
+  message?: string
+}
+
 export default function DepartmentsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const { data: departments = [], isLoading } = useQuery({
+  const { data: departments = [], isLoading } = useQuery<Department[]>({
     queryKey: ['departments', searchQuery],
     queryFn: async () => {
       const url = searchQuery
         ? `/admin/departments/search?q=${encodeURIComponent(searchQuery)}`
         : '/admin/departments'
-      const res = await api.get(url)
+      const res = await api.get<Department[]>(url)
       return res.data
     },
   })
@@ -35,7 +40,7 @@ export default function DepartmentsPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Departments</h1>
-          <p className="text-gray-600 mt-2">Manage your institution's departments</p>
+          <p className="text-gray-600 mt-2">Manage your institution&apos;s departments</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -65,7 +70,7 @@ export default function DepartmentsPage() {
         <div className="text-center py-12">Loading...</div>
       ) : departments.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-600">No departments found. Click "Add Department" to create one.</p>
+          <p className="text-gray-600">No departments found. Click &quot;Add Department&quot; to create one.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -98,7 +103,7 @@ export default function DepartmentsPage() {
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             setShowAddModal(false)
-            queryClient.invalidateQueries({ queryKey: ['departments'] })
+            void queryClient.invalidateQueries({ queryKey: ['departments'] })
           }}
         />
       )}
@@ -121,14 +126,14 @@ function AddDepartmentModal({
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await api.post('/admin/departments', data)
+      const res = await api.post<Department>('/admin/departments', data)
       return res.data
     },
     onSuccess: () => {
       toast.success('Department added successfully!')
       onSuccess()
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       toast.error(error.response?.data?.message || 'Failed to add department')
     },
   })

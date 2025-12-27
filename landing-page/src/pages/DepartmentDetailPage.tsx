@@ -3,30 +3,56 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, Users, BookOpen } from 'lucide-react'
 import api from '@/lib/api'
 
+interface Department {
+  id: number
+  name: string
+  code: string
+  description: string
+  isActive: boolean
+}
+
+interface Teacher {
+  id: number
+  name: string
+  email: string
+  phone: string
+  departmentId: number
+  isActive: boolean
+}
+
+interface Class {
+  id: number
+  name: string
+  semester: number
+  year: number
+  departmentId: number
+  isActive: boolean
+}
+
 export default function DepartmentDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const { data: department, isLoading } = useQuery({
+  const { data: department, isLoading } = useQuery<Department>({
     queryKey: ['department', id],
     queryFn: async () => {
-      const res = await api.get(`/admin/departments/${id}`)
+      const res = await api.get<Department>(`/admin/departments/${id}`)
       return res.data
     },
   })
 
-  const { data: teachers = [] } = useQuery({
+  const { data: teachers = [] } = useQuery<Teacher[]>({
     queryKey: ['department-teachers', id],
     queryFn: async () => {
-      const res = await api.get(`/admin/teachers/department/${id}`)
+      const res = await api.get<Teacher[]>(`/admin/teachers/department/${id}`)
       return res.data
     },
   })
 
-  const { data: classes = [] } = useQuery({
+  const { data: classes = [] } = useQuery<Class[]>({
     queryKey: ['department-classes', id],
     queryFn: async () => {
-      const res = await api.get(`/admin/classes/department/${id}`)
+      const res = await api.get<Class[]>(`/admin/classes/department/${id}`)
       return res.data
     },
   })

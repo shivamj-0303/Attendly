@@ -1,45 +1,93 @@
 import { useAuthStore } from '@/store/authStore'
-import { Users, Calendar, BookOpen, TrendingUp } from 'lucide-react'
+import { Building2, Users } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import api from '@/lib/api'
+
+interface Department {
+  id: number
+  name: string
+  code: string
+  description: string
+  isActive: boolean
+}
+
+interface Teacher {
+  id: number
+  name: string
+  email: string
+  phone: string
+  departmentId: number
+  isActive: boolean
+}
 
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user)
+  const navigate = useNavigate()
 
-  const stats = [
-    { name: 'Total Students', value: '0', icon: Users, color: 'bg-blue-500' },
-    { name: 'Total Classes', value: '0', icon: Calendar, color: 'bg-green-500' },
-    { name: 'Total Courses', value: '0', icon: BookOpen, color: 'bg-purple-500' },
-    { name: 'Attendance Rate', value: '0%', icon: TrendingUp, color: 'bg-yellow-500' },
-  ]
+  const { data: departments = [] } = useQuery<Department[]>({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const res = await api.get<Department[]>('/admin/departments')
+      return res.data
+    },
+  })
+
+  const { data: teachers = [] } = useQuery<Teacher[]>({
+    queryKey: ['teachers'],
+    queryFn: async () => {
+      const res = await api.get<Teacher[]>('/admin/teachers')
+      return res.data
+    },
+  })
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
         <p className="text-gray-600 mt-2">Welcome back, {user?.name}!</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => (
-          <div key={stat.name} className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
-              </div>
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Manage Departments Card */}
+        <button
+          onClick={() => navigate('/admin/departments')}
+          className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow text-left group"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-blue-500 p-4 rounded-lg group-hover:bg-blue-600 transition-colors">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-gray-900">{departments.length}</p>
+              <p className="text-sm text-gray-500">Departments</p>
             </div>
           </div>
-        ))}
-      </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Manage Departments</h2>
+          <p className="text-gray-600">
+            Add, edit, and manage departments like CS, Mechanical, etc.
+          </p>
+        </button>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Getting Started</h2>
-        <p className="text-gray-600">
-          This is your admin dashboard. You can manage students, classes, and attendance from here.
-          More features will be added soon.
-        </p>
+        {/* Manage Staff Card */}
+        <button
+          onClick={() => navigate('/admin/staff')}
+          className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow text-left group"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-green-500 p-4 rounded-lg group-hover:bg-green-600 transition-colors">
+              <Users className="w-8 h-8 text-white" />
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-gray-900">{teachers.length}</p>
+              <p className="text-sm text-gray-500">Staff Members</p>
+            </div>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Manage Staff</h2>
+          <p className="text-gray-600">
+            View and manage all teachers across all departments
+          </p>
+        </button>
       </div>
     </div>
   )

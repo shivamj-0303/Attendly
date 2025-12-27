@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, userType: 'student' | 'teacher') => Promise<void>;
   signup: (name: string, email: string, password: string, phone: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -39,9 +39,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, userType: 'student' | 'teacher') => {
     try {
-      const response: AuthResponse = await authService.login({ email, password });
+      const response: AuthResponse = await authService.login({ email, password }, userType);
       const user = { id: response.id, name: response.name, email: response.email, role: response.role };
       setUser(user);
     } catch (error: any) {

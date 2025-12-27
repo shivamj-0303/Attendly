@@ -28,9 +28,14 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      const requestUrl = error.config?.url || ''
+      const isAuthAttempt = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/signup')
+
+      if (!isAuthAttempt) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   },

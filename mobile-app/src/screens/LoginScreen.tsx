@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userType, setUserType] = useState<'student' | 'teacher'>('student');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
@@ -27,7 +28,7 @@ export default function LoginScreen({ navigation }: any) {
 
     setIsLoading(true);
     try {
-      await login(email, password);
+      await login(email, password, userType);
       // Navigation will be handled by the navigation container based on auth state
     } catch (error: any) {
       Alert.alert('Login Failed', error.message || 'Invalid credentials');
@@ -52,6 +53,43 @@ export default function LoginScreen({ navigation }: any) {
           </View>
 
           <View style={styles.form}>
+            {/* User Type Selector */}
+            <Text style={styles.label}>Login as</Text>
+            <View style={styles.userTypeContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.userTypeButton,
+                  userType === 'student' && styles.userTypeButtonActive,
+                ]}
+                onPress={() => setUserType('student')}
+              >
+                <Text
+                  style={[
+                    styles.userTypeText,
+                    userType === 'student' && styles.userTypeTextActive,
+                  ]}
+                >
+                  Student
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.userTypeButton,
+                  userType === 'teacher' && styles.userTypeButtonActive,
+                ]}
+                onPress={() => setUserType('teacher')}
+              >
+                <Text
+                  style={[
+                    styles.userTypeText,
+                    userType === 'teacher' && styles.userTypeTextActive,
+                  ]}
+                >
+                  Teacher
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <Text style={styles.label}>Email</Text>
             <TextInput
               style={styles.input}
@@ -141,6 +179,31 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
+  },
+  userTypeContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  userTypeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  userTypeButtonActive: {
+    backgroundColor: '#2563eb',
+  },
+  userTypeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  userTypeTextActive: {
+    color: '#fff',
   },
   label: {
     fontSize: 16,

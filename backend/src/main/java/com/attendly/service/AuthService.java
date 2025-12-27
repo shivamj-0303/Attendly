@@ -14,6 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -30,20 +33,35 @@ public class AuthService {
             throw new ResourceAlreadyExistsException("Admin already exists with email: " + request.getEmail());
         }
 
+        // Check if institution name already exists
+        if (adminRepository.existsByInstitution(request.getInstitution())) {
+            throw new ResourceAlreadyExistsException("Institution already registered: " + request.getInstitution());
+        }
+
         // Create new admin
         Admin admin = Admin.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .phone(request.getPhone())
+                .institution(request.getInstitution())
+                .institutionAddress(request.getInstitutionAddress())
+                .institutionCity(request.getInstitutionCity())
+                .institutionState(request.getInstitutionState())
+                .institutionPostalCode(request.getInstitutionPostalCode())
+                .institutionPhone(request.getInstitutionPhone())
+                .institutionEmail(request.getInstitutionEmail())
                 .role(Admin.Role.ADMIN)
                 .isActive(true)
                 .build();
 
         admin = adminRepository.save(admin);
 
-        // Generate JWT token
-        String jwtToken = jwtService.generateToken(admin);
+        // Generate JWT token with extra claims
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("adminId", admin.getId());
+        claims.put("name", admin.getName());
+        String jwtToken = jwtService.generateToken(claims, admin);
 
         return new AuthResponse(
                 jwtToken,
@@ -66,10 +84,13 @@ public class AuthService {
 
         // Get admin details
         Admin admin = adminRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                .orElseThrow(() -> new com.attendly.exception.ResourceNotFoundException("Admin not found"));
 
-        // Generate JWT token
-        String jwtToken = jwtService.generateToken(admin);
+        // Generate JWT token with extra claims
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("adminId", admin.getId());
+        claims.put("name", admin.getName());
+        String jwtToken = jwtService.generateToken(claims, admin);
 
         return new AuthResponse(
                 jwtToken,

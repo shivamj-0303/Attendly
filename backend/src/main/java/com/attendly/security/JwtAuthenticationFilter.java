@@ -47,8 +47,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
+                    // Extract user info from JWT
+                    Long adminId = jwtService.extractAdminId(jwt);
+                    String name = jwtService.extractName(jwt);
+                    
+                    // Create UserPrincipal with admin details
+                    UserPrincipal userPrincipal = new UserPrincipal(adminId, userEmail, name);
+                    
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
+                            userPrincipal,
                             null,
                             userDetails.getAuthorities()
                     );

@@ -16,6 +16,13 @@ export interface SignupRequest {
   email: string
   password: string
   phone: string
+  institution: string
+  institutionAddress: string
+  institutionCity: string
+  institutionState: string
+  institutionPostalCode: string
+  institutionPhone: string
+  institutionEmail: string
 }
 
 export interface AuthResponse {

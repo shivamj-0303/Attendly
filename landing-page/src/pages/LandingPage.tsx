@@ -1,6 +1,11 @@
 import { Download, Shield, Clock, Users, BarChart3, Smartphone, CheckCircle, LogIn } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+// APK URL: GitHub in production, local path in development
+const APK_URL = import.meta.env.PROD 
+  ? 'https://github.com/shivamj-0303/Attendly/raw/main/landing-page/public/downloads/attendly.apk'
+  : '/downloads/attendly.apk'
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -16,11 +21,11 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center gap-4">
               <Link
-                to="/admin"
+                to="/login"
                 className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
               >
                 <LogIn className="h-4 w-4" />
-                Admin Panel
+                Login
               </Link>
               <a
                 href="https://github.com/shivamj-0303/Attendly"
@@ -51,8 +56,8 @@ export default function LandingPage() {
           {/* Download Button */}
           <div className="flex flex-col items-center gap-6">
             <a
-              href="/downloads/attendly.apk"
-              download
+              href={APK_URL}
+              download="attendly.apk"
               className="inline-flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <Download className="h-6 w-6" />
@@ -235,8 +240,8 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="/downloads/attendly.apk"
-              download
+              href={APK_URL}
+              download="attendly.apk"
               className="inline-flex items-center gap-3 bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <Download className="h-6 w-6" />
@@ -283,7 +288,7 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <a href="/downloads/attendly.apk" className="hover:text-white transition">
+                  <a href={APK_URL} download="attendly.apk" className="hover:text-white transition">
                     Download
                   </a>
                 </li>

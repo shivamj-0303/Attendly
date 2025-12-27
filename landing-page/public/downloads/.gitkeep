@@ -1,0 +1,10 @@
+APK file will be placed here.
+
+For now, the download button on the landing page will show a message.
+
+To add a real APK:
+1. Build using Android Studio (see APK_SIMPLE_GUIDE.md)
+2. Copy APK here: attendly.apk
+3. Commit to Git
+
+Or use Expo Go approach (no APK needed).

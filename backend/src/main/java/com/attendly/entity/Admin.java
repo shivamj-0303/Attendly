@@ -47,6 +47,29 @@ public class Admin implements UserDetails {
     @Column(nullable = false, length = 20)
     private String phone;
 
+    @NotBlank(message = "Institution name is required")
+    @Column(nullable = false, unique = true, length = 200)
+    private String institution;
+
+    @Column(length = 255)
+    private String institutionAddress;
+
+    @Column(length = 100)
+    private String institutionCity;
+
+    @Column(length = 100)
+    private String institutionState;
+
+    @Column(length = 10)
+    private String institutionPostalCode;
+
+    @Column(length = 20)
+    private String institutionPhone;
+
+    @Email(message = "Institution email should be valid")
+    @Column(length = 100)
+    private String institutionEmail;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.ADMIN;

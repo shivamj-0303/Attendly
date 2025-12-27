@@ -82,8 +82,9 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    const response = await api.post('/auth/login', credentials);
+  login: async (credentials: LoginRequest, userType: 'student' | 'teacher' = 'student'): Promise<AuthResponse> => {
+    const endpoint = userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
+    const response = await api.post(endpoint, credentials);
     const { token, id, name, email, role } = response.data;
     
     // Store token and user data

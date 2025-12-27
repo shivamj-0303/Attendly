@@ -1,0 +1,18 @@
+{
+  "name": "attendly",
+  "version": "1.0.0",
+  "description": "Smart Attendance Management System",
+  "private": true,
+  "scripts": {
+    "landing:dev": "cd landing-page && npm run dev",
+    "landing:build": "cd landing-page && npm run build",
+    "backend:dev": "cd backend && mvn spring-boot:run",
+    "mobile:start": "cd mobile-app && npm start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shivamj-0303/Attendly.git"
+  },
+  "author": "shivamj-0303",
+  "license": "MIT"
+}

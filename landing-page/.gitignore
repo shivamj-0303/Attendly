@@ -1,1 +1,5 @@
 .vercel
+
+# Ignore APK files during local development
+# (Production APK is tracked in Git and auto-built via GitHub Actions)
+public/downloads/*.apk

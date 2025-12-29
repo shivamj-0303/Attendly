@@ -60,15 +60,12 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
-        run: |
-          cd mobile-app
-          npm ci
+        working-directory: mobile-app
+        run: npm ci
 
       - name: Build APK with Local Build
-        run: |
-          cd mobile-app
-          # Build APK locally with the working command
-          VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} bash build-apk.sh
+        working-directory: mobile-app
+        run: VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} bash build-apk.sh
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 

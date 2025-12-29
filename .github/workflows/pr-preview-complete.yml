@@ -63,9 +63,19 @@ jobs:
         working-directory: mobile-app
         run: npm ci
 
-      - name: Build APK with Local Build
+      - name: Build Preview APK
         working-directory: mobile-app
-        run: VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} bash build-apk.sh
+        run: |
+          echo "🔧 Building APK with API URL: ${{ secrets.VITE_API_BASE_URL }}"
+          
+          # Map VITE_API_BASE_URL to EXPO_PUBLIC_API_URL (Metro bundler requirement)
+          export EXPO_PUBLIC_API_URL="${{ secrets.VITE_API_BASE_URL }}"
+          
+          # Build the APK
+          echo "🚀 Starting EAS build..."
+          eas build --platform android --profile preview --local
+          
+          echo "✅ Build complete!"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 

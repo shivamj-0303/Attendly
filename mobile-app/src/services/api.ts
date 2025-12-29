@@ -1,17 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-
-/**
- * API Configuration
- * Determines the backend URL from environment variables with fallback priority:
- * 1. Expo config (from app.config.js)
- * 2. Environment variable EXPO_PUBLIC_API_URL
- * 3. Localhost fallback for local development
- */
-const API_BASE_URL = 
-  process.env.EXPO_PUBLIC_API_URL || 
-  'http://192.168.1.58:8080/api';
+import { API_BASE_URL } from '../config/api.config';
 
 /**
  * Axios instance configured for the Attendly API

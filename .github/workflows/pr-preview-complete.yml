@@ -64,20 +64,22 @@ jobs:
           cd mobile-app
           npm ci
 
-      - name: Build APK with EAS
+      - name: Build APK with Local Build
         run: |
           cd mobile-app
-          eas build --platform android --profile preview --non-interactive --no-wait
+          # Build APK locally with the working command
+          VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} bash build-apk.sh
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EXPO_PUBLIC_API_URL: ${{ secrets.VITE_API_BASE_URL }}
 
-      - name: Wait for build to complete
+      - name: Find APK and Upload Info
+        id: apk
         run: |
           cd mobile-app
-          # This will wait for the build and download the APK
-          # You may need to implement a polling mechanism or use EAS CLI commands
-          echo "Build started. Check Expo dashboard for APK download link."
+          APK_FILE=$(ls -t build-*.apk | head -1)
+          echo "apk-name=$APK_FILE" >> $GITHUB_OUTPUT
+          echo "APK built: $APK_FILE"
+          ls -lh "$APK_FILE"
 
   # Deploy Unified App Preview (Landing Page + Admin Panel)
   deploy-unified-preview:

@@ -1,5 +1,6 @@
 export default {
   expo: {
+    owner: "attendly2003",
     name: "Attendly",
     slug: "attendly",
     version: "1.0.0",
@@ -34,8 +35,7 @@ export default {
       favicon: "./assets/favicon.png"
     },
     extra: {
-      // API URL from environment variable or fallback to localhost
-      apiUrl: process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080/api",
+      apiUrl: process.env.VITE_API_BASE_URL,
       eas: {
         projectId: "27d102f1-8754-4875-843c-334473755cfb"
       }

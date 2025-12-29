@@ -1,9 +1,9 @@
 import { Download, Shield, Clock, Users, BarChart3, Smartphone, CheckCircle, LogIn } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-// APK URL: GitHub in production, local path in development
+// APK URL: GitHub Releases latest in production, local path in development
 const APK_URL = import.meta.env.PROD 
-  ? 'https://github.com/shivamj-0303/Attendly/raw/main/landing-page/public/downloads/attendly.apk'
+  ? 'https://github.com/shivamj-0303/Attendly/releases/latest/download/attendly.apk'
   : '/downloads/attendly.apk'
 
 export default function LandingPage() {

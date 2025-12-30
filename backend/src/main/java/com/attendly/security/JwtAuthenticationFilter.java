@@ -48,11 +48,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     // Extract user info from JWT
-                    Long adminId = jwtService.extractAdminId(jwt);
+                    // Try userId first (for students/teachers), then adminId (for admins)
+                    Long userId = jwtService.extractUserId(jwt);
+                    if (userId == null) {
+                        userId = jwtService.extractAdminId(jwt);
+                    }
                     String name = jwtService.extractName(jwt);
                     
-                    // Create UserPrincipal with admin details
-                    UserPrincipal userPrincipal = new UserPrincipal(adminId, userEmail, name);
+                    // Create UserPrincipal with user details
+                    UserPrincipal userPrincipal = new UserPrincipal(userId, userEmail, name);
                     
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userPrincipal,

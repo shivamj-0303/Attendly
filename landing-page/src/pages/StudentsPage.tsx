@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, Search, Plus, Trash2 } from 'lucide-react'
+import { ChevronLeft, Search, Plus, Trash2, Calendar } from 'lucide-react'
 import api from '@/lib/api'
 import { toast } from 'react-hot-toast'
 import type { AxiosError } from 'axios'
@@ -84,13 +84,22 @@ export default function StudentsPage() {
           </h1>
           <p className="text-gray-600 mt-2">Manage students in this class</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add Student
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate(`/admin/classes/${classId}/timetable`)}
+            className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+          >
+            <Calendar className="w-5 h-5" />
+            Timetable
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add Student
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}

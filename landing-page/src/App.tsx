@@ -10,6 +10,7 @@ import DepartmentDetailPage from './pages/DepartmentDetailPage'
 import TeachersPage from './pages/TeachersPage'
 import ClassesPage from './pages/ClassesPage'
 import StudentsPage from './pages/StudentsPage'
+import TimetablePage from './pages/TimetablePage'
 import StaffPage from './pages/StaffPage'
 import Layout from './components/Layout'
 
@@ -36,6 +37,7 @@ function App() {
         <Route path="/admin/departments/:id/teachers" element={isAuthenticated ? <TeachersPage /> : <Navigate to="/admin/login" />} />
         <Route path="/admin/departments/:id/classes" element={isAuthenticated ? <ClassesPage /> : <Navigate to="/admin/login" />} />
         <Route path="/admin/classes/:classId/students" element={isAuthenticated ? <StudentsPage /> : <Navigate to="/admin/login" />} />
+        <Route path="/admin/classes/:classId/timetable" element={isAuthenticated ? <TimetablePage /> : <Navigate to="/admin/login" />} />
         <Route path="/admin/staff" element={isAuthenticated ? <StaffPage /> : <Navigate to="/admin/login" />} />
       </Route>
       

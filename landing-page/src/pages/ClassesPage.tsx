@@ -110,7 +110,7 @@ export default function ClassesPage() {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  navigate(`/admin/classes/${cls.id}/timetable`)
+                  void navigate(`/admin/classes/${cls.id}/timetable`)
                 }}
                 className="absolute top-4 right-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors z-10"
                 title="View Timetable"

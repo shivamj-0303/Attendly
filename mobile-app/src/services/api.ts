@@ -111,3 +111,13 @@ export const authService = {
 };
 
 export default api;
+export async function getStudentTimetable(date?: string) {
+  try {
+    const params = date ? `?date=${encodeURIComponent(date)}` : '';
+    const resp = await api.get(`/student/timetable${params}`);
+    return resp.data as Array<any>;
+  } catch (err) {
+    console.warn('getStudentTimetable failed, returning empty', err);
+    return [];
+  }
+}

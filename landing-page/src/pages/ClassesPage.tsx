@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, Search, Plus } from 'lucide-react'
+import { ChevronLeft, Search, Plus, Calendar } from 'lucide-react'
 import api from '@/lib/api'
 import { toast } from 'react-hot-toast'
 import type { AxiosError } from 'axios'
@@ -104,14 +104,31 @@ export default function ClassesPage() {
           {classes.map((cls: Class) => (
             <div
               key={cls.id}
-              onClick={() => navigate(`/admin/classes/${cls.id}/students`)}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
+              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow relative group"
             >
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{cls.name}</h3>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Semester: {cls.semester}</p>
-                <p>Year: {cls.year}</p>
-                <p className="text-blue-600 mt-3">• Click to view students</p>
+              {/* Timetable Icon Button - Top Right */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  void navigate(`/admin/classes/${cls.id}/timetable`)
+                }}
+                className="absolute top-4 right-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors z-10"
+                title="View Timetable"
+              >
+                <Calendar className="w-5 h-5" />
+              </button>
+
+              {/* Card Content - Clickable to view students */}
+              <div
+                onClick={() => navigate(`/admin/classes/${cls.id}/students`)}
+                className="p-6 cursor-pointer"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-2 pr-10">{cls.name}</h3>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>Semester: {cls.semester}</p>
+                  <p>Year: {cls.year}</p>
+                  <p className="text-blue-600 mt-3">• Click to view students</p>
+                </div>
               </div>
             </div>
           ))}

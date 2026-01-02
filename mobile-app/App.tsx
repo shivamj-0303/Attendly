@@ -5,9 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
-import LoginScreen from './src/screens/LoginScreen';
-import SignupScreen from './src/screens/SignupScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import PasswordResetScreen from './src/screens/PasswordResetScreen';
+import SignupScreen from './src/screens/SignupScreen';
 import StudentScreen from './src/screens/StudentScreen';
 import TeacherScreen from './src/screens/TeacherScreen';
 
@@ -22,6 +23,7 @@ function AuthNavigator() {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
     </Stack.Navigator>
   );
 }
@@ -35,6 +37,7 @@ function AppNavigator() {
     return (
       <Stack.Navigator>
         <Stack.Screen name="Student" component={StudentScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PasswordReset" component={PasswordResetScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     );
   }
@@ -43,6 +46,7 @@ function AppNavigator() {
     return (
       <Stack.Navigator>
         <Stack.Screen name="Teacher" component={TeacherScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PasswordReset" component={PasswordResetScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     );
   }

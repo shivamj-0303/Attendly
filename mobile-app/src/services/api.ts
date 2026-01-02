@@ -55,10 +55,11 @@ export interface LoginRequest {
 }
 
 export interface SignupRequest {
-  name: string;
   email: string;
+  name: string;
   password: string;
   phone: string;
+  registrationNumber?: string;
 }
 
 export interface AuthResponse {
@@ -71,26 +72,30 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  login: async (credentials: LoginRequest, userType: 'student' | 'teacher' = 'student'): Promise<AuthResponse> => {
-    const endpoint = userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
+  login: async (
+    credentials: LoginRequest,
+    userType: 'student' | 'teacher' = 'student'
+  ): Promise<AuthResponse> => {
+    const endpoint =
+      userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
     const response = await api.post(endpoint, credentials);
     const { token, id, name, email, role } = response.data;
-    
+
     // Store token and user data
     await AsyncStorage.setItem('token', token);
     await AsyncStorage.setItem('user', JSON.stringify({ id, name, email, role }));
-    
+
     return response.data;
   },
 
   signup: async (data: SignupRequest): Promise<AuthResponse> => {
     const response = await api.post('/auth/signup', data);
     const { token, id, name, email, role } = response.data;
-    
+
     // Store token and user data
     await AsyncStorage.setItem('token', token);
     await AsyncStorage.setItem('user', JSON.stringify({ id, name, email, role }));
-    
+
     return response.data;
   },
 
@@ -137,6 +142,18 @@ export async function getStudentAttendance(date?: string) {
   }
 }
 
+export async function getStudentAttendanceReport(token: string) {
+  try {
+    const resp = await api.get('/student/attendance/report', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return resp.data;
+  } catch (err) {
+    console.warn('getStudentAttendanceReport failed', err);
+    throw err;
+  }
+}
+
 export async function getTeacherTimetable(date?: string) {
   try {
     const params = date ? `?date=${encodeURIComponent(date)}` : '';
@@ -167,4 +184,3 @@ export async function markAttendance(attendanceData: any[]) {
     throw new Error(err.response?.data?.message || 'Failed to mark attendance');
   }
 }
-

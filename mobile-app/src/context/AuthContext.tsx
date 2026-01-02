@@ -10,12 +10,18 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (email: string, password: string, userType: 'student' | 'teacher') => Promise<void>;
-  signup: (name: string, email: string, password: string, phone: string) => Promise<void>;
   logout: () => Promise<void>;
+  signup: (
+    name: string,
+    email: string,
+    password: string,
+    phone: string,
+    registrationNumber?: string
+  ) => Promise<void>;
+  user: User | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,7 +48,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string, userType: 'student' | 'teacher') => {
     try {
       const response: AuthResponse = await authService.login({ email, password }, userType);
-      const user = { id: response.id, name: response.name, email: response.email, role: response.role };
+      const user = {
+        id: response.id,
+        name: response.name,
+        email: response.email,
+        role: response.role,
+      };
       setUser(user);
     } catch (error: any) {
       console.error('Login failed:', error);
@@ -50,10 +61,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const signup = async (name: string, email: string, password: string, phone: string) => {
+  const signup = async (
+    name: string,
+    email: string,
+    password: string,
+    phone: string,
+    registrationNumber?: string
+  ) => {
     try {
-      const response: AuthResponse = await authService.signup({ name, email, password, phone });
-      const user = { id: response.id, name: response.name, email: response.email, role: response.role };
+      const response: AuthResponse = await authService.signup({
+        email,
+        name,
+        password,
+        phone,
+        registrationNumber,
+      });
+      const user = {
+        email: response.email,
+        id: response.id,
+        name: response.name,
+        role: response.role,
+      };
       setUser(user);
     } catch (error: any) {
       console.error('Signup failed:', error);

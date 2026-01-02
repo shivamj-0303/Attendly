@@ -1,0 +1,10 @@
+node_modules
+.expo
+.expo-shared
+dist
+coverage
+android
+ios
+*.min.js
+package-lock.json
+yarn.lock

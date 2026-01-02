@@ -1,37 +1,50 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
-  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
+import { FormInput } from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useFormValidation } from '../hooks/useFormValidation';
 
 export default function LoginScreen({ navigation }: any) {
+  const { login } = useAuth();
+  const { errors, validateForm } = useFormValidation();
+
   const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState<'student' | 'teacher'>('student');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    const isValid = validateForm({
+      Email: {
+        rules: { email: true, required: true },
+        value: email,
+      },
+      Password: {
+        rules: { required: true },
+        value: password,
+      },
+    });
+
+    if (!isValid) {
       return;
     }
 
     setIsLoading(true);
     try {
       await login(email, password, userType);
-      // Navigation will be handled by the navigation container based on auth state
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Invalid credentials');
+      Alert.alert('Login Failed', error.message ?? 'Invalid credentials');
     } finally {
       setIsLoading(false);
     }
@@ -53,74 +66,74 @@ export default function LoginScreen({ navigation }: any) {
           </View>
 
           <View style={styles.form}>
-            {/* User Type Selector */}
             <Text style={styles.label}>Login as</Text>
             <View style={styles.userTypeContainer}>
               <TouchableOpacity
+                onPress={() => setUserType('student')}
                 style={[
                   styles.userTypeButton,
                   userType === 'student' && styles.userTypeButtonActive,
                 ]}
-                onPress={() => setUserType('student')}
               >
                 <Text
-                  style={[
-                    styles.userTypeText,
-                    userType === 'student' && styles.userTypeTextActive,
-                  ]}
+                  style={[styles.userTypeText, userType === 'student' && styles.userTypeTextActive]}
                 >
                   Student
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
+                onPress={() => setUserType('teacher')}
                 style={[
                   styles.userTypeButton,
                   userType === 'teacher' && styles.userTypeButtonActive,
                 ]}
-                onPress={() => setUserType('teacher')}
               >
                 <Text
-                  style={[
-                    styles.userTypeText,
-                    userType === 'teacher' && styles.userTypeTextActive,
-                  ]}
+                  style={[styles.userTypeText, userType === 'teacher' && styles.userTypeTextActive]}
                 >
                   Teacher
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
+            <FormInput
               autoCapitalize="none"
               autoCorrect={false}
+              error={errors.Email}
+              keyboardType="email-address"
+              label="Email"
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              value={email}
             />
 
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
+            <FormInput
               autoCapitalize="none"
+              error={errors.Password}
+              label="Password"
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry
+              value={password}
             />
 
             <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
-              onPress={handleLogin}
               disabled={isLoading}
+              onPress={handleLogin}
+              style={[styles.button, isLoading && styles.buttonDisabled]}
             >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.buttonText}>Login</Text>
               )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('PasswordReset')}
+              style={styles.forgotPasswordButton}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
             <View style={styles.footer}>
@@ -137,95 +150,12 @@ export default function LoginScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  iconText: {
-    fontSize: 40,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  form: {
-    width: '100%',
-  },
-  userTypeContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-  },
-  userTypeButton: {
-    flex: 1,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  userTypeButtonActive: {
-    backgroundColor: '#2563eb',
-  },
-  userTypeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  userTypeTextActive: {
-    color: '#fff',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
-  },
   button: {
+    alignItems: 'center',
     backgroundColor: '#2563eb',
     borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
     marginTop: 8,
+    padding: 16,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -234,6 +164,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  container: {
+    backgroundColor: '#f5f5f5',
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
   },
   footer: {
     flexDirection: 'row',
@@ -244,9 +183,83 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontSize: 14,
   },
+  forgotPasswordButton: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  forgotPasswordText: {
+    color: '#2563eb',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  form: {
+    width: '100%',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    backgroundColor: '#2563eb',
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
+    marginBottom: 20,
+    width: 80,
+  },
+  iconText: {
+    color: '#fff',
+    fontSize: 40,
+    fontWeight: 'bold',
+  },
+  label: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
   link: {
     color: '#2563eb',
     fontSize: 14,
     fontWeight: '600',
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  subtitle: {
+    color: '#6b7280',
+    fontSize: 16,
+  },
+  title: {
+    color: '#1f2937',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  userTypeButton: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    flex: 1,
+    paddingVertical: 12,
+  },
+  userTypeButtonActive: {
+    backgroundColor: '#2563eb',
+  },
+  userTypeContainer: {
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  userTypeText: {
+    color: '#6b7280',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  userTypeTextActive: {
+    color: '#fff',
   },
 });

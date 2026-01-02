@@ -11,13 +11,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DepartmentRequest {
 
-    @NotBlank(message = "Department name is required")
-    @Size(min = 2, max = 100, message = "Department name must be between 2 and 100 characters")
-    private String name;
+  @NotBlank(message = "Department name is required")
+  @Size(min = 2, max = 100, message = "Department name must be between 2 and 100 characters")
+  private String name;
 
-    @NotBlank(message = "Department code is required")
-    @Size(min = 2, max = 10, message = "Department code must be between 2 and 10 characters")
-    private String code;
+  @NotBlank(message = "Department code is required")
+  @Size(min = 2, max = 10, message = "Department code must be between 2 and 10 characters")
+  private String code;
 
-    private String description;
+  private String description;
 }

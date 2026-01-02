@@ -1,39 +1,39 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus } from 'lucide-react'
-import api from '@/lib/api'
-import { toast } from 'react-hot-toast'
-import type { AxiosError } from 'axios'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Search, Plus } from 'lucide-react';
+import api from '@/lib/api';
+import { toast } from 'react-hot-toast';
+import type { AxiosError } from 'axios';
 
 interface Department {
-  id: number
-  name: string
-  code: string
-  description: string
-  isActive: boolean
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  isActive: boolean;
 }
 
 interface ErrorResponse {
-  message?: string
+  message?: string;
 }
 
 export default function DepartmentsPage() {
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showAddModal, setShowAddModal] = useState(false)
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const { data: departments = [], isLoading } = useQuery<Department[]>({
     queryKey: ['departments', searchQuery],
     queryFn: async () => {
       const url = searchQuery
         ? `/admin/departments/search?q=${encodeURIComponent(searchQuery)}`
-        : '/admin/departments'
-      const res = await api.get<Department[]>(url)
-      return res.data
+        : '/admin/departments';
+      const res = await api.get<Department[]>(url);
+      return res.data;
     },
-  })
+  });
 
   return (
     <div>
@@ -70,7 +70,9 @@ export default function DepartmentsPage() {
         <div className="text-center py-12">Loading...</div>
       ) : departments.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-600">No departments found. Click &quot;Add Department&quot; to create one.</p>
+          <p className="text-gray-600">
+            No departments found. Click &quot;Add Department&quot; to create one.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -86,9 +88,7 @@ export default function DepartmentsPage() {
                   <p className="text-sm text-gray-500 mt-1">Code: {dept.code}</p>
                 </div>
               </div>
-              {dept.description && (
-                <p className="text-gray-600 text-sm mb-4">{dept.description}</p>
-              )}
+              {dept.description && <p className="text-gray-600 text-sm mb-4">{dept.description}</p>}
               <div className="flex gap-2 text-sm text-gray-500">
                 <span>• Click to manage</span>
               </div>
@@ -102,46 +102,46 @@ export default function DepartmentsPage() {
         <AddDepartmentModal
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
-            setShowAddModal(false)
-            void queryClient.invalidateQueries({ queryKey: ['departments'] })
+            setShowAddModal(false);
+            void queryClient.invalidateQueries({ queryKey: ['departments'] });
           }}
         />
       )}
     </div>
-  )
+  );
 }
 
 function AddDepartmentModal({
   onClose,
   onSuccess,
 }: {
-  onClose: () => void
-  onSuccess: () => void
+  onClose: () => void;
+  onSuccess: () => void;
 }) {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
     description: '',
-  })
+  });
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await api.post<Department>('/admin/departments', data)
-      return res.data
+      const res = await api.post<Department>('/admin/departments', data);
+      return res.data;
     },
     onSuccess: () => {
-      toast.success('Department added successfully!')
-      onSuccess()
+      toast.success('Department added successfully!');
+      onSuccess();
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error(error.response?.data?.message || 'Failed to add department')
+      toast.error(error.response?.data?.message || 'Failed to add department');
     },
-  })
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    mutation.mutate(formData)
-  }
+    e.preventDefault();
+    mutation.mutate(formData);
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -175,9 +175,7 @@ function AddDepartmentModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -205,5 +203,5 @@ function AddDepartmentModal({
         </form>
       </div>
     </div>
-  )
+  );
 }

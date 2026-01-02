@@ -1,77 +1,79 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
-  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
+import { FormInput } from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useFormValidation } from '../hooks/useFormValidation';
+
+const PASSWORD_REGEX = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).*$/;
 
 export default function SignupScreen({ navigation }: any) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
+  const { errors, validateForm } = useFormValidation();
 
-  const validateForm = () => {
-    if (!name || !email || !phone || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return false;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return false;
-    }
-
-    // Backend requires: min 8 chars, at least one digit, one lowercase, one uppercase, one special char
-    if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters');
-      return false;
-    }
-
-    const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).*$/;
-    if (!passwordRegex.test(password)) {
-      Alert.alert('Error', 'Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return false;
-    }
-
-    // Backend requires exactly 10 digits
-    const phoneRegex = /^\d{10}$/;
-    if (!phoneRegex.test(phone)) {
-      Alert.alert('Error', 'Phone number must be exactly 10 digits');
-      return false;
-    }
-
-    return true;
-  };
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [registrationNumber, setRegistrationNumber] = useState('');
 
   const handleSignup = async () => {
-    if (!validateForm()) {
+    const isValid = validateForm({
+      'Confirm Password': {
+        rules: { confirmPassword: password, required: true },
+        value: confirmPassword,
+      },
+      Email: {
+        rules: { email: true, required: true },
+        value: email,
+      },
+      Name: {
+        rules: { required: true },
+        value: name,
+      },
+      Password: {
+        rules: {
+          minLength: 8,
+          pattern: PASSWORD_REGEX,
+          required: true,
+        },
+        value: password,
+      },
+      Phone: {
+        rules: { phone: true, required: true },
+        value: phone,
+      },
+    });
+
+    if (!isValid) {
+      return;
+    }
+
+    if (!PASSWORD_REGEX.test(password)) {
+      Alert.alert(
+        'Invalid Password',
+        'Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character'
+      );
       return;
     }
 
     setIsLoading(true);
     try {
-      await signup(name, email, password, phone);
-      // Navigation will be handled by the navigation container based on auth state
+      await signup(name, email, password, phone, registrationNumber);
     } catch (error: any) {
-      Alert.alert('Signup Failed', error.message || 'Failed to create account');
+      Alert.alert('Signup Failed', error.message ?? 'Failed to create account');
     } finally {
       setIsLoading(false);
     }
@@ -93,60 +95,69 @@ export default function SignupScreen({ navigation }: any) {
           </View>
 
           <View style={styles.form}>
-            <Text style={styles.label}>Full Name</Text>
-            <TextInput
-              style={styles.input}
+            <FormInput
+              autoCapitalize="words"
+              error={errors.Name}
+              label="Full Name"
+              onChangeText={setName}
               placeholder="Enter your full name"
               value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
             />
 
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
+            <FormInput
               autoCapitalize="none"
               autoCorrect={false}
+              error={errors.Email}
+              keyboardType="email-address"
+              label="Email"
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              value={email}
             />
 
-            <Text style={styles.label}>Phone Number</Text>
-            <TextInput
-              style={styles.input}
+            <FormInput
+              error={errors.Phone}
+              keyboardType="phone-pad"
+              label="Phone Number"
+              maxLength={10}
+              onChangeText={setPhone}
               placeholder="Enter your 10-digit phone number"
               value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              maxLength={10}
             />
 
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              value={password}
+            <FormInput
+              autoCapitalize="characters"
+              error={errors['Registration Number']}
+              label="Registration Number (Optional)"
+              onChangeText={setRegistrationNumber}
+              placeholder="Enter your registration number"
+              value={registrationNumber}
+            />
+
+            <FormInput
+              autoCapitalize="none"
+              error={errors.Password}
+              label="Password"
               onChangeText={setPassword}
+              placeholder="Enter your password"
               secureTextEntry
-              autoCapitalize="none"
+              value={password}
             />
 
-            <Text style={styles.label}>Confirm Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm your password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
+            <FormInput
               autoCapitalize="none"
+              error={errors['Confirm Password']}
+              label="Confirm Password"
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm your password"
+              secureTextEntry
+              value={confirmPassword}
             />
 
             <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
-              onPress={handleSignup}
               disabled={isLoading}
+              onPress={handleSignup}
+              style={[styles.button, isLoading && styles.buttonDisabled]}
             >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
@@ -169,70 +180,12 @@ export default function SignupScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  iconText: {
-    fontSize: 40,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  form: {
-    width: '100%',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
-  },
   button: {
+    alignItems: 'center',
     backgroundColor: '#2563eb',
     borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
     marginTop: 8,
+    padding: 16,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -241,6 +194,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  container: {
+    backgroundColor: '#f5f5f5',
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
   },
   footer: {
     flexDirection: 'row',
@@ -251,9 +213,43 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontSize: 14,
   },
+  form: {
+    width: '100%',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    backgroundColor: '#2563eb',
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
+    marginBottom: 20,
+    width: 80,
+  },
+  iconText: {
+    color: '#fff',
+    fontSize: 40,
+    fontWeight: 'bold',
+  },
   link: {
     color: '#2563eb',
     fontSize: 14,
     fontWeight: '600',
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  subtitle: {
+    color: '#6b7280',
+    fontSize: 16,
+  },
+  title: {
+    color: '#1f2937',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
 });

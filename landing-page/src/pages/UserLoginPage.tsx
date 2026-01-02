@@ -1,28 +1,32 @@
-import { useNavigate, Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
-import { GraduationCap, UserCircle } from 'lucide-react'
-import { authService } from '@/services/authService'
-import { useAuthStore } from '@/store/authStore'
+import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { GraduationCap, UserCircle } from 'lucide-react';
+import { authService } from '@/services/authService';
+import { useAuthStore } from '@/store/authStore';
 
 type UserLoginRequest = {
-  email: string
-  password: string
-}
+  email: string;
+  password: string;
+};
 
-type UserType = 'student' | 'teacher'
+type UserType = 'student' | 'teacher';
 
 export default function UserLoginPage() {
-  const navigate = useNavigate()
-  const setAuth = useAuthStore((state) => state.setAuth)
-  const { register, handleSubmit, formState: { errors } } = useForm<UserLoginRequest>()
-  const [serverError, setServerError] = useState<string | null>(null)
-  const [userType, setUserType] = useState<UserType>('student')
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UserLoginRequest>();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [userType, setUserType] = useState<UserType>('student');
 
   const loginMutation = useMutation({
-    mutationFn: (data: UserLoginRequest & { userType: UserType }) => 
+    mutationFn: (data: UserLoginRequest & { userType: UserType }) =>
       authService.userLogin(data.email, data.password, data.userType),
     onSuccess: (data) => {
       setAuth(
@@ -33,37 +37,39 @@ export default function UserLoginPage() {
           phone: '',
           role: data.role,
         },
-        data.token,
-      )
-      toast.success('Login successful!')
+        data.token
+      );
+      toast.success('Login successful!');
       if (userType === 'student') {
-        void navigate('/student/dashboard')
+        void navigate('/student/dashboard');
       } else {
-        void navigate('/teacher/dashboard')
+        void navigate('/teacher/dashboard');
       }
     },
     onError: (error: unknown) => {
-      const axiosErr = error as { response?: { status?: number; data?: { message?: string } } } | undefined
-      const status = axiosErr?.response?.status
-      const serverMsg = axiosErr?.response?.data?.message
+      const axiosErr = error as
+        | { response?: { status?: number; data?: { message?: string } } }
+        | undefined;
+      const status = axiosErr?.response?.status;
+      const serverMsg = axiosErr?.response?.data?.message;
 
-      let userMessage = 'Login failed'
+      let userMessage = 'Login failed';
       if (status === 404) {
-        userMessage = 'No account found with this email.'
+        userMessage = 'No account found with this email.';
       } else if (status === 401) {
-        userMessage = 'Invalid email or password.'
+        userMessage = 'Invalid email or password.';
       } else if (serverMsg) {
-        userMessage = serverMsg
+        userMessage = serverMsg;
       }
 
-      setServerError(userMessage)
+      setServerError(userMessage);
     },
-  })
+  });
 
   const onSubmit = (data: UserLoginRequest) => {
-    setServerError(null)
-    loginMutation.mutate({ ...data, userType })
-  }
+    setServerError(null);
+    loginMutation.mutate({ ...data, userType });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-100 px-4">
@@ -131,9 +137,7 @@ export default function UserLoginPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               placeholder={userType === 'student' ? 'student@example.com' : 'teacher@example.com'}
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
           <div>
@@ -181,5 +185,5 @@ export default function UserLoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

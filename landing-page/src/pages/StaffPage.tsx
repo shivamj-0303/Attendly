@@ -1,54 +1,54 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
-import api from '@/lib/api'
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Search } from 'lucide-react';
+import api from '@/lib/api';
 
 interface Teacher {
-  id: number
-  name: string
-  email: string
-  phone: string
-  departmentId: number
-  isActive: boolean
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  departmentId: number;
+  isActive: boolean;
 }
 
 interface Department {
-  id: number
-  name: string
+  id: number;
+  name: string;
 }
 
 export default function StaffPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
 
   const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ['departments'],
     queryFn: async () => {
-      const res = await api.get<Department[]>('/admin/departments')
-      return res.data
+      const res = await api.get<Department[]>('/admin/departments');
+      return res.data;
     },
-  })
+  });
 
   const { data: allTeachers = [], isLoading } = useQuery<Teacher[]>({
     queryKey: ['all-teachers', searchQuery],
     queryFn: async () => {
       const url = searchQuery
         ? `/admin/teachers/search?q=${encodeURIComponent(searchQuery)}`
-        : '/admin/teachers'
-      const res = await api.get<Teacher[]>(url)
-      return res.data
+        : '/admin/teachers';
+      const res = await api.get<Teacher[]>(url);
+      return res.data;
     },
-  })
+  });
 
   const filteredTeachers = allTeachers.filter((teacher: Teacher) => {
-    if (selectedDepartment === 'all') return true
-    return teacher.departmentId === Number(selectedDepartment)
-  })
+    if (selectedDepartment === 'all') return true;
+    return teacher.departmentId === Number(selectedDepartment);
+  });
 
   const getDepartmentName = (departmentId: number) => {
-    const dept = departments.find((d: Department) => d.id === departmentId)
-    return dept?.name || 'Unknown'
-  }
+    const dept = departments.find((d: Department) => d.id === departmentId);
+    return dept?.name || 'Unknown';
+  };
 
   return (
     <div>
@@ -124,7 +124,9 @@ export default function StaffPage() {
                     <div className="text-sm text-gray-500">{teacher.phone || '-'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{getDepartmentName(teacher.departmentId)}</div>
+                    <div className="text-sm text-gray-500">
+                      {getDepartmentName(teacher.departmentId)}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -133,5 +135,5 @@ export default function StaffPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

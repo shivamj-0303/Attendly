@@ -1,18 +1,22 @@
-import { useNavigate, Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
-import { LogIn } from 'lucide-react'
-import { authService } from '@/services/authService'
-import { useAuthStore } from '@/store/authStore'
-import type { LoginRequest } from '@/types/auth'
+import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { LogIn } from 'lucide-react';
+import { authService } from '@/services/authService';
+import { useAuthStore } from '@/store/authStore';
+import type { LoginRequest } from '@/types/auth';
 
 export default function LoginPage() {
-  const navigate = useNavigate()
-  const setAuth = useAuthStore((state) => state.setAuth)
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginRequest>()
-  const [serverError, setServerError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginRequest>();
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
@@ -25,33 +29,36 @@ export default function LoginPage() {
           phone: '',
           role: data.role,
         },
-        data.token,
-      )
-      toast.success('Login successful!')
-      void navigate('/admin/dashboard')
+        data.token
+      );
+      toast.success('Login successful!');
+      void navigate('/admin/dashboard');
     },
     onError: (error: unknown) => {
-      const axiosErr = error as { response?: { status?: number; data?: { message?: string } } } | undefined
-      const status = axiosErr?.response?.status
-      const serverMsg = axiosErr?.response?.data?.message
+      const axiosErr = error as
+        | { response?: { status?: number; data?: { message?: string } } }
+        | undefined;
+      const status = axiosErr?.response?.status;
+      const serverMsg = axiosErr?.response?.data?.message;
 
-      let userMessage = 'Login failed'
+      let userMessage = 'Login failed';
       if (status === 404) {
-        userMessage = 'No account exists for this email. Please register your institution or contact support.'
+        userMessage =
+          'No account exists for this email. Please register your institution or contact support.';
       } else if (status === 401) {
-        userMessage = 'Invalid email or password.'
+        userMessage = 'Invalid email or password.';
       } else if (serverMsg) {
-        userMessage = serverMsg
+        userMessage = serverMsg;
       }
 
-      setServerError(userMessage)
+      setServerError(userMessage);
     },
-  })
+  });
 
   const onSubmit = (data: LoginRequest) => {
-    setServerError(null)
-    loginMutation.mutate(data)
-  }
+    setServerError(null);
+    loginMutation.mutate(data);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
@@ -87,9 +94,7 @@ export default function LoginPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="admin@example.com"
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
           <div>
@@ -143,5 +148,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

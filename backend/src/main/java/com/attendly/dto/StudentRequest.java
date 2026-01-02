@@ -13,26 +13,28 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudentRequest {
 
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
-    private String name;
+  @NotBlank(message = "Name is required")
+  @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+  private String name;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email should be valid")
-    private String email;
+  @NotBlank(message = "Email is required")
+  @Email(message = "Email should be valid")
+  private String email;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
-    private String password;
+  @NotBlank(message = "Password is required")
+  @Size(min = 6, message = "Password must be at least 6 characters")
+  private String password;
 
-    private String phone;
+  private String phone;
 
-    @NotBlank(message = "Roll number is required")
-    private String rollNumber;
+  @NotBlank(message = "Roll number is required")
+  private String rollNumber;
 
-    @NotNull(message = "Class ID is required")
-    private Long classId;
+  private String registrationNumber;
 
-    @NotNull(message = "Department ID is required")
-    private Long departmentId;
+  @NotNull(message = "Class ID is required")
+  private Long classId;
+
+  @NotNull(message = "Department ID is required")
+  private Long departmentId;
 }

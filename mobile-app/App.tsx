@@ -9,6 +9,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import StudentScreen from './src/screens/StudentScreen';
+import TeacherScreen from './src/screens/TeacherScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,7 +28,10 @@ function AuthNavigator() {
 
 function AppNavigator() {
   const { user } = useAuth();
-  if (user?.role && user.role.toLowerCase().includes('student')) {
+  // Route users based on their role. Backend may return roles like 'TEACHER', 'ROLE_TEACHER', 'teacher'
+  const role = user?.role?.toString()?.toLowerCase() || '';
+
+  if (role.includes('student')) {
     return (
       <Stack.Navigator>
         <Stack.Screen name="Student" component={StudentScreen} options={{ headerShown: false }} />
@@ -35,6 +39,15 @@ function AppNavigator() {
     );
   }
 
+  if (role.includes('teacher')) {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen name="Teacher" component={TeacherScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    );
+  }
+
+  // Fallback to the generic dashboard for other roles (admin, unknown, etc.)
   return (
     <Stack.Navigator>
       <Stack.Screen 

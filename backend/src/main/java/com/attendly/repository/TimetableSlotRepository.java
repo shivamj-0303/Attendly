@@ -21,6 +21,10 @@ public interface TimetableSlotRepository extends JpaRepository<TimetableSlot, Lo
     
     List<TimetableSlot> findByTeacherId(Long teacherId);
     
+    List<TimetableSlot> findByTeacherIdAndDayOfWeekAndIsActiveTrue(Long teacherId, String dayOfWeek);
+    
+    List<TimetableSlot> findByTeacherIdAndIsActiveTrue(Long teacherId);
+    
     // Check for overlapping slots
     List<TimetableSlot> findByClassIdAndDayOfWeekAndIsActiveTrue(Long classId, String dayOfWeek);
 }

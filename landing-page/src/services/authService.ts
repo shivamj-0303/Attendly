@@ -7,6 +7,12 @@ export const authService = {
     return response.data
   },
 
+  userLogin: async (email: string, password: string, userType: 'student' | 'teacher'): Promise<AuthResponse> => {
+    const endpoint = userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login'
+    const response = await api.post<AuthResponse>(endpoint, { email, password })
+    return response.data
+  },
+
   signup: async (data: SignupRequest): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/signup', data)
     return response.data

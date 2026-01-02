@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,10 @@ import {
   FlatList,
   ScrollView,
   Alert,
-  Animated,
-  Dimensions,
   TouchableWithoutFeedback,
-  PanResponder,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { getStudentTimetable } from '../services/api';
+import { getStudentTimetable, getStudentAttendance } from '../services/api';
 
 type ClassItem = {
   id: string;
@@ -26,7 +23,6 @@ type ClassItem = {
 };
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export default function StudentScreen() {
   const { user, logout } = useAuth();
@@ -38,10 +34,6 @@ export default function StudentScreen() {
   const [selectedSlot, setSelectedSlot] = useState<ClassItem | null>(null);
   const [slotDetailsOpen, setSlotDetailsOpen] = useState(false);
 
-  // Animated value for drawer (0 = half screen, 1 = full screen)
-  const drawerAnimation = useRef(new Animated.Value(0)).current;
-  const [drawerExpanded, setDrawerExpanded] = useState(false);
-
   useEffect(() => {
     loadToday();
     loadWeek();
@@ -51,16 +43,26 @@ export default function StudentScreen() {
     try {
       const today = new Date();
       const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
-      const data = await getStudentTimetable(dateStr);
       
-      // Map API response to ClassItem format
-      const mapped: ClassItem[] = (data || []).map((slot: any) => ({
+      const [timetableData, attendanceData] = await Promise.all([
+        getStudentTimetable(dateStr),
+        getStudentAttendance(dateStr)
+      ]);
+      
+      const attendanceMap = new Map<number, string>();
+      (attendanceData || []).forEach((att: any) => {
+        if (att.timetableSlotId) {
+          attendanceMap.set(att.timetableSlotId, att.status);
+        }
+      });
+      
+      const mapped: ClassItem[] = (timetableData || []).map((slot: any) => ({
         id: slot.id?.toString() || Math.random().toString(),
         start: slot.startTime ? slot.startTime.substring(0, 5) : '00:00',
         end: slot.endTime ? slot.endTime.substring(0, 5) : '00:00',
         subject: slot.subject || 'Unknown',
         teacher: slot.teacherName || 'TBA',
-        status: 'not_marked' as const, // Default status, will be updated when attendance API is integrated
+        status: (attendanceMap.get(slot.id) || 'NOT_MARKED').toLowerCase() as 'present' | 'absent' | 'leave' | 'not_marked',
       }));
       
       // Sort by start time
@@ -78,6 +80,20 @@ export default function StudentScreen() {
       // Get the full week timetable
       const data = await getStudentTimetable(); // No date = full week
       
+      // For week view, we'll keep attendance check for today only
+      // (Fetching attendance for all days would require week date range which isn't provided by the timetable API)
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0];
+      const attendanceData = await getStudentAttendance(dateStr);
+      
+      // Create attendance map for today: timetableSlotId -> status
+      const attendanceMap = new Map<number, string>();
+      (attendanceData || []).forEach((att: any) => {
+        if (att.timetableSlotId) {
+          attendanceMap.set(att.timetableSlotId, att.status);
+        }
+      });
+      
       // Group by day of week
       const week: Record<number, ClassItem[]> = {};
       const dayMap: Record<string, number> = {
@@ -94,7 +110,7 @@ export default function StudentScreen() {
         week[i] = [];
       }
       
-      // Map API data to days
+      // Map API data to days with attendance status
       (data || []).forEach((slot: any) => {
         const dayIndex = dayMap[slot.dayOfWeek];
         if (dayIndex !== undefined) {
@@ -104,7 +120,7 @@ export default function StudentScreen() {
             end: slot.endTime ? slot.endTime.substring(0, 5) : '00:00',
             subject: slot.subject || 'Unknown',
             teacher: slot.teacherName || 'TBA',
-            status: 'not_marked' as const,
+            status: (attendanceMap.get(slot.id) || 'NOT_MARKED').toLowerCase() as 'present' | 'absent' | 'leave' | 'not_marked',
           });
         }
       });
@@ -142,57 +158,11 @@ export default function StudentScreen() {
 
   const openDrawer = () => {
     setProfileOpen(true);
-    setDrawerExpanded(false);
-    Animated.timing(drawerAnimation, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
   };
 
   const closeDrawer = () => {
-    Animated.timing(drawerAnimation, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start(() => {
-      setProfileOpen(false);
-      setDrawerExpanded(false);
-    });
+    setProfileOpen(false);
   };
-
-  const expandDrawer = () => {
-    setDrawerExpanded(true);
-    Animated.timing(drawerAnimation, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dy < -50 && !drawerExpanded) {
-          expandDrawer();
-        } else if (gestureState.dy > 50 && drawerExpanded) {
-          closeDrawer();
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 100) {
-          closeDrawer();
-        }
-      },
-    })
-  ).current;
-
-  const drawerHeight = drawerAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [SCREEN_HEIGHT * 0.6, SCREEN_HEIGHT * 0.95],
-  });
 
   const renderClass = ({ item }: { item: ClassItem }) => {
     const color =
@@ -444,86 +414,81 @@ export default function StudentScreen() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Profile Drawer Modal */}
-      <Modal visible={profileOpen} animationType="fade" transparent>
-        <TouchableWithoutFeedback onPress={closeDrawer}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <Animated.View
-                style={[styles.drawerContent, { height: drawerHeight }]}
-                {...panResponder.panHandlers}
-              >
-                {/* Drag Handle */}
-                <View style={styles.dragHandle} />
-
-                {/* Profile Title - Centered */}
-                <Text style={styles.drawerTitle}>Profile</Text>
-
-                <ScrollView
-                  style={styles.drawerScroll}
-                  contentContainerStyle={styles.drawerScrollContent}
-                >
-                  {/* Profile Icon */}
-                  <View style={styles.profileLargeCircle}>
-                    <Text style={styles.profileLargeText}>
-                      {user?.name?.charAt(0).toUpperCase() || 'U'}
-                    </Text>
-                  </View>
-
-                  {/* Student Details */}
-                  <View style={styles.detailsContainer}>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Name:</Text>
-                      <Text style={styles.detailValue}>{user?.name || 'N/A'}</Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Reg no:</Text>
-                      <Text style={styles.detailValue}>{user?.id || 'N/A'}</Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Mail:</Text>
-                      <Text style={styles.detailValue}>{user?.email || 'N/A'}</Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Department:</Text>
-                      <Text style={styles.detailValue}>Computer Science</Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Class:</Text>
-                      <Text style={styles.detailValue}>3rd Year A</Text>
-                    </View>
-                  </View>
-
-                  {/* Spacer to push buttons to bottom */}
-                  <View style={{ flex: 1, minHeight: 20 }} />
-
-                  {/* Buttons at bottom */}
-                  <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                      style={styles.resetButton}
-                      onPress={() =>
-                        Alert.alert('Reset Password', 'Coming soon')
-                      }
-                    >
-                      <Text style={styles.buttonText}>Reset Password</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.signoutButton}
-                      onPress={handleLogout}
-                    >
-                      <Text style={styles.buttonText}>Sign Out</Text>
-                    </TouchableOpacity>
-                  </View>
-                </ScrollView>
-              </Animated.View>
-            </TouchableWithoutFeedback>
+      {/* Profile Modal - Full Screen */}
+      <Modal visible={profileOpen} animationType="slide" transparent={false}>
+        <View style={styles.profileContainer}>
+          {/* Header */}
+          <View style={styles.profileHeader}>
+            <TouchableOpacity onPress={closeDrawer} style={styles.backButton}>
+              <Text style={styles.backButtonText}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.profileHeaderTitle}>Profile</Text>
+            <View style={{ width: 40 }} />
           </View>
-        </TouchableWithoutFeedback>
+
+          {/* Profile Content */}
+          <FlatList
+            data={[{ key: 'content' }]}
+            renderItem={() => (
+              <View style={styles.profileContent}>
+                {/* Profile Icon */}
+                <View style={styles.profileLargeCircle}>
+                  <Text style={styles.profileLargeText}>
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </Text>
+                </View>
+
+                {/* Student Details */}
+                <View style={styles.detailsContainer}>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Name:</Text>
+                    <Text style={styles.detailValue}>{user?.name || 'N/A'}</Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Reg no:</Text>
+                    <Text style={styles.detailValue}>{user?.id || 'N/A'}</Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Mail:</Text>
+                    <Text style={styles.detailValue}>{user?.email || 'N/A'}</Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Department:</Text>
+                    <Text style={styles.detailValue}>Computer Science</Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Class:</Text>
+                    <Text style={styles.detailValue}>3rd Year A</Text>
+                  </View>
+                </View>
+
+                {/* Buttons */}
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.resetButton}
+                    onPress={() =>
+                      Alert.alert('Reset Password', 'Coming soon')
+                    }
+                  >
+                    <Text style={styles.buttonText}>Reset Password</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.signoutButton}
+                    onPress={handleLogout}
+                  >
+                    <Text style={styles.buttonText}>Sign Out</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+            keyExtractor={(item) => item.key}
+          />
+        </View>
       </Modal>
     </View>
   );
@@ -596,14 +561,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   dayButton: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     backgroundColor: '#fff',
-    marginRight: 10,
-    borderRadius: 20,
+    marginRight: 8,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    minWidth: 70,
+    minWidth: 55,
     alignItems: 'center',
   },
   dayButtonActive: { 
@@ -613,7 +578,7 @@ const styles = StyleSheet.create({
   dayText: { 
     color: '#111827',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 13,
   },
   dayTextActive: { color: '#fff' },
   modalOverlay: {
@@ -621,30 +586,39 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
-  drawerContent: {
+  // Profile full screen styles
+  profileContainer: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+  },
+  profileHeader: {
+    height: 60,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
-  dragHandle: {
+  backButton: {
     width: 40,
-    height: 5,
-    backgroundColor: '#d1d5db',
-    borderRadius: 3,
-    alignSelf: 'center',
-    marginBottom: 16,
+    height: 40,
+    justifyContent: 'center',
   },
-  drawerTitle: {
-    fontSize: 20,
+  backButtonText: {
+    fontSize: 28,
+    color: '#2563eb',
     fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 24,
+  },
+  profileHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     color: '#111827',
   },
-  drawerScroll: { flex: 1 },
-  drawerScrollContent: { paddingBottom: 20 },
+  profileContent: {
+    padding: 20,
+  },
   profileLargeCircle: {
     width: 120,
     height: 120,

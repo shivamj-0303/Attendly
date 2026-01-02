@@ -121,3 +121,50 @@ export async function getStudentTimetable(date?: string) {
     return [];
   }
 }
+
+export async function getStudentAttendance(date?: string) {
+  try {
+    if (date) {
+      const resp = await api.get(`/student/attendance?startDate=${date}&endDate=${date}`);
+      return resp.data as Array<any>;
+    } else {
+      const resp = await api.get('/student/attendance/today');
+      return resp.data as Array<any>;
+    }
+  } catch (err) {
+    console.warn('getStudentAttendance failed, returning empty', err);
+    return [];
+  }
+}
+
+export async function getTeacherTimetable(date?: string) {
+  try {
+    const params = date ? `?date=${encodeURIComponent(date)}` : '';
+    const resp = await api.get(`/teacher/timetable${params}`);
+    return resp.data as Array<any>;
+  } catch (err) {
+    console.warn('getTeacherTimetable failed, returning empty', err);
+    return [];
+  }
+}
+
+export async function getClassStudents(classId: number, slotId: number, date: string) {
+  try {
+    const resp = await api.get(`/teacher/class/${classId}/students?slotId=${slotId}&date=${date}`);
+    return resp.data as Array<any>;
+  } catch (err) {
+    console.warn('getClassStudents failed, returning empty', err);
+    return [];
+  }
+}
+
+export async function markAttendance(attendanceData: any[]) {
+  try {
+    const resp = await api.post('/admin/attendance/mark/bulk', attendanceData);
+    return resp.data;
+  } catch (err: any) {
+    console.error('markAttendance failed', err);
+    throw new Error(err.response?.data?.message || 'Failed to mark attendance');
+  }
+}
+

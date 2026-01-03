@@ -1,13 +1,7 @@
 package com.attendly.service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,59 +9,23 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailService {
 
-  private final JavaMailSender mailSender;
+  private final GmailApiService gmailApiService;
 
-  @Value("${spring.mail.username}")
-  private String fromEmail;
-
-  /**
-   * Send a simple text email
-   */
-  public void sendSimpleEmail(String to, String subject, String text) {
-    try {
-      SimpleMailMessage message = new SimpleMailMessage();
-      message.setFrom(fromEmail);
-      message.setTo(to);
-      message.setSubject(subject);
-      message.setText(text);
-
-      mailSender.send(message);
-      log.info("Email sent successfully to: {}", to);
-    } catch (Exception e) {
-      log.error("Failed to send email to: {}", to, e);
-      throw new RuntimeException("Failed to send email: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Send HTML email
-   */
-  public void sendHtmlEmail(String to, String subject, String htmlContent)
-      throws MessagingException {
-    try {
-      MimeMessage message = mailSender.createMimeMessage();
-      MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-      helper.setFrom(fromEmail);
-      helper.setTo(to);
-      helper.setSubject(subject);
-      helper.setText(htmlContent, true);
-
-      mailSender.send(message);
-      log.info("HTML email sent successfully to: {}", to);
-    } catch (MessagingException e) {
-      log.error("Failed to send HTML email to: {}", to, e);
-      throw new RuntimeException("Failed to send email: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Send OTP email with formatted template
-   */
   public void sendOtpEmail(String to, String name, String otpCode, String purpose) {
     String subject = "Attendly - Your OTP Code";
+    String htmlContent = formatOtpEmail(name, otpCode, purpose);
+    
+    try {
+      gmailApiService.sendEmail(to, subject, htmlContent);
+      log.info("✅ OTP email sent successfully to: {}", to);
+    } catch (Exception e) {
+      log.error("❌ Failed to send OTP email to: {}", to, e);
+      throw new RuntimeException("Failed to send OTP email: " + e.getMessage());
+    }
+  }
 
-    String htmlContent = String.format(
+  private String formatOtpEmail(String name, String otpCode, String purpose) {
+    return String.format(
         """
         <!DOCTYPE html>
         <html>
@@ -124,29 +82,6 @@ public class EmailService {
         </html>
         """,
         name, getPurposeText(purpose), otpCode);
-
-    try {
-      sendHtmlEmail(to, subject, htmlContent);
-    } catch (MessagingException e) {
-      // Fallback to simple email if HTML fails
-      String textContent =
-          String.format(
-              """
-              Hello %s,
-              
-              Your OTP code for %s is: %s
-              
-              This code will expire in 10 minutes.
-              
-              If you didn't request this, please ignore this email.
-              
-              Best regards,
-              Team Attendly
-              """,
-              name, getPurposeText(purpose), otpCode);
-
-      sendSimpleEmail(to, subject, textContent);
-    }
   }
 
   private String getPurposeText(String purpose) {

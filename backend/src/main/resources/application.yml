@@ -30,31 +30,16 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
   
-  # Email Configuration (Gmail SMTP)
-  # Note: Render may block SMTP ports. If emails don't send, use SendGrid instead.
-  # See: backend/RENDER_EMAIL_FIX.md for alternatives
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:465}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          ssl:
-            enable: true
-            trust: smtp.gmail.com
-          socketFactory:
-            port: 465
-            class: javax.net.ssl.SSLSocketFactory
-            fallback: false
-          connectiontimeout: 10000
-          timeout: 10000
-          writetimeout: 10000
-        transport:
-          protocol: smtp
-        debug: false
+  # Gmail API Configuration (OAuth2)
+  # Uses HTTPS (port 443) - works on Render (SMTP ports are blocked)
+  # See: backend/GMAIL_OAUTH2_SETUP.md for setup instructions
+  gmail:
+    oauth:
+      client-id: ${GMAIL_CLIENT_ID}
+      client-secret: ${GMAIL_CLIENT_SECRET}
+      refresh-token: ${GMAIL_REFRESH_TOKEN}
+    user:
+      email: ${GMAIL_USER_EMAIL}
 
 server:
   port: 8080

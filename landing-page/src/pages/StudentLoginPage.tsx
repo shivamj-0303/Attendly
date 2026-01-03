@@ -1,31 +1,31 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { LogIn, Mail, Lock, User, GraduationCap } from 'lucide-react'
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { LogIn, Mail, Lock, User, GraduationCap } from 'lucide-react';
 
 export default function StudentLoginPage() {
   // const navigate = useNavigate() // Will be used when API is implemented
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [userType, setUserType] = useState<'student' | 'teacher'>('student')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [userType, setUserType] = useState<'student' | 'teacher'>('student');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
       // TODO: Implement student/teacher login API
       // Future: Call API with userType, email, password
       // navigate('/dashboard') // After implementation
-      setError('Student/Teacher login not yet implemented. Please use admin login.')
+      setError('Student/Teacher login not yet implemented. Please use admin login.');
     } catch (err) {
-      setError('Login failed. Please try again.')
+      setError('Login failed. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
@@ -35,12 +35,8 @@ export default function StudentLoginPage() {
           <div className="inline-block bg-blue-600 p-3 rounded-2xl mb-4">
             <GraduationCap className="h-12 w-12 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome to Attendly
-          </h1>
-          <p className="text-gray-600">
-            Student and Teacher Login Portal
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Attendly</h1>
+          <p className="text-gray-600">Student and Teacher Login Portal</p>
         </div>
 
         {/* Login Card */}
@@ -172,5 +168,5 @@ export default function StudentLoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

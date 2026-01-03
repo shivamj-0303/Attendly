@@ -1,32 +1,21 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 export default function DashboardScreen() {
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-          },
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -81,10 +70,7 @@ export default function DashboardScreen() {
       <View style={styles.footer}>
         <Text style={styles.footerText}>Coming Soon</Text>
         <Text style={styles.footerSubtext}>
-          • Attendance marking{'\n'}
-          • Class management{'\n'}
-          • Detailed reports{'\n'}
-          • Notifications
+          • Attendance marking{'\n'}• Class management{'\n'}• Detailed reports{'\n'}• Notifications
         </Text>
       </View>
     </ScrollView>

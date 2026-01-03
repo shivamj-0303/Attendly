@@ -1,22 +1,22 @@
-import { Outlet } from 'react-router-dom'
-import { LogOut, Menu, X } from 'lucide-react'
-import { useState } from 'react'
-import { useAuthStore } from '@/store/authStore'
-import { useNavigate } from 'react-router-dom'
-import { authService } from '@/services/authService'
-import toast from 'react-hot-toast'
+import { Outlet } from 'react-router-dom';
+import { LogOut, Menu, X } from 'lucide-react';
+import { useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '@/services/authService';
+import toast from 'react-hot-toast';
 
 export default function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, logout } = useAuthStore()
-  const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    authService.logout()
-    logout()
-    toast.success('Logged out successfully')
-    void navigate('/login')
-  }
+    authService.logout();
+    logout();
+    toast.success('Logged out successfully');
+    void navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -32,7 +32,7 @@ export default function Layout() {
             </button>
             <h1 className="text-2xl font-bold text-blue-600">Attendly</h1>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
@@ -54,5 +54,5 @@ export default function Layout() {
         <Outlet />
       </main>
     </div>
-  )
+  );
 }

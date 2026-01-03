@@ -55,10 +55,11 @@ export interface LoginRequest {
 }
 
 export interface SignupRequest {
-  name: string;
   email: string;
+  name: string;
   password: string;
   phone: string;
+  registrationNumber?: string;
 }
 
 export interface AuthResponse {
@@ -71,26 +72,30 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  login: async (credentials: LoginRequest, userType: 'student' | 'teacher' = 'student'): Promise<AuthResponse> => {
-    const endpoint = userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
+  login: async (
+    credentials: LoginRequest,
+    userType: 'student' | 'teacher' = 'student'
+  ): Promise<AuthResponse> => {
+    const endpoint =
+      userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
     const response = await api.post(endpoint, credentials);
     const { token, id, name, email, role } = response.data;
-    
+
     // Store token and user data
     await AsyncStorage.setItem('token', token);
     await AsyncStorage.setItem('user', JSON.stringify({ id, name, email, role }));
-    
+
     return response.data;
   },
 
   signup: async (data: SignupRequest): Promise<AuthResponse> => {
     const response = await api.post('/auth/signup', data);
     const { token, id, name, email, role } = response.data;
-    
+
     // Store token and user data
     await AsyncStorage.setItem('token', token);
     await AsyncStorage.setItem('user', JSON.stringify({ id, name, email, role }));
-    
+
     return response.data;
   },
 
@@ -119,5 +124,63 @@ export async function getStudentTimetable(date?: string) {
   } catch (err) {
     console.warn('getStudentTimetable failed, returning empty', err);
     return [];
+  }
+}
+
+export async function getStudentAttendance(date?: string) {
+  try {
+    if (date) {
+      const resp = await api.get(`/student/attendance?startDate=${date}&endDate=${date}`);
+      return resp.data as Array<any>;
+    } else {
+      const resp = await api.get('/student/attendance/today');
+      return resp.data as Array<any>;
+    }
+  } catch (err) {
+    console.warn('getStudentAttendance failed, returning empty', err);
+    return [];
+  }
+}
+
+export async function getStudentAttendanceReport(token: string) {
+  try {
+    const resp = await api.get('/student/attendance/report', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return resp.data;
+  } catch (err) {
+    console.warn('getStudentAttendanceReport failed', err);
+    throw err;
+  }
+}
+
+export async function getTeacherTimetable(date?: string) {
+  try {
+    const params = date ? `?date=${encodeURIComponent(date)}` : '';
+    const resp = await api.get(`/teacher/timetable${params}`);
+    return resp.data as Array<any>;
+  } catch (err) {
+    console.warn('getTeacherTimetable failed, returning empty', err);
+    return [];
+  }
+}
+
+export async function getClassStudents(classId: number, slotId: number, date: string) {
+  try {
+    const resp = await api.get(`/teacher/class/${classId}/students?slotId=${slotId}&date=${date}`);
+    return resp.data as Array<any>;
+  } catch (err) {
+    console.warn('getClassStudents failed, returning empty', err);
+    return [];
+  }
+}
+
+export async function markAttendance(attendanceData: any[]) {
+  try {
+    const resp = await api.post('/admin/attendance/mark/bulk', attendanceData);
+    return resp.data;
+  } catch (err: any) {
+    console.error('markAttendance failed', err);
+    throw new Error(err.response?.data?.message || 'Failed to mark attendance');
   }
 }

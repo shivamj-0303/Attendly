@@ -1,5 +1,8 @@
 name: Backend Deploy
 
+# Deploys backend to Render when backend code changes
+# For complete setup instructions, see: .github/DEPLOYMENT_CONFIG.md
+
 on:
   push:
     branches:

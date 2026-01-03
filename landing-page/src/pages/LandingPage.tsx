@@ -1,10 +1,19 @@
-import { Download, Shield, Clock, Users, BarChart3, Smartphone, CheckCircle, LogIn } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import {
+  Download,
+  Shield,
+  Clock,
+  Users,
+  BarChart3,
+  Smartphone,
+  CheckCircle,
+  LogIn,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // APK URL: GitHub Releases latest in production, local path in development
-const APK_URL = import.meta.env.PROD 
+const APK_URL = import.meta.env.PROD
   ? 'https://github.com/shivamj-0303/Attendly/releases/latest/download/attendly.apk'
-  : '/downloads/attendly.apk'
+  : '/downloads/attendly.apk';
 
 export default function LandingPage() {
   return (
@@ -49,8 +58,8 @@ export default function LandingPage() {
             <span className="text-blue-600">Made Simple</span>
           </h2>
           <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-            Streamline your college attendance tracking with our powerful mobile app.
-            Perfect for teachers and students to manage attendance efficiently.
+            Streamline your college attendance tracking with our powerful mobile app. Perfect for
+            teachers and students to manage attendance efficiently.
           </p>
 
           {/* Download Button */}
@@ -63,9 +72,7 @@ export default function LandingPage() {
               <Download className="h-6 w-6" />
               Download APK (Android)
             </a>
-            <p className="text-sm text-gray-500">
-              Version 1.0.0 • Android 6.0+ • 15 MB
-            </p>
+            <p className="text-sm text-gray-500">Version 1.0.0 • Android 6.0+ • 15 MB</p>
           </div>
 
           {/* App Screenshot Placeholder */}
@@ -84,9 +91,7 @@ export default function LandingPage() {
       <section className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
-              Everything You Need
-            </h3>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">Everything You Need</h3>
             <p className="text-lg text-gray-600">
               Powerful features designed for modern educational institutions
             </p>
@@ -98,11 +103,10 @@ export default function LandingPage() {
               <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Clock className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Real-time Tracking
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Real-time Tracking</h4>
               <p className="text-gray-600">
-                Mark and monitor attendance in real-time with instant synchronization across all devices.
+                Mark and monitor attendance in real-time with instant synchronization across all
+                devices.
               </p>
             </div>
 
@@ -111,11 +115,10 @@ export default function LandingPage() {
               <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Shield className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Secure Authentication
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Secure Authentication</h4>
               <p className="text-gray-600">
-                Role-based access control with JWT authentication ensures your data is always protected.
+                Role-based access control with JWT authentication ensures your data is always
+                protected.
               </p>
             </div>
 
@@ -124,9 +127,7 @@ export default function LandingPage() {
               <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Multi-User Support
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Multi-User Support</h4>
               <p className="text-gray-600">
                 Separate interfaces for admins, teachers, and students with appropriate permissions.
               </p>
@@ -137,9 +138,7 @@ export default function LandingPage() {
               <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <BarChart3 className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Analytics & Reports
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Analytics & Reports</h4>
               <p className="text-gray-600">
                 Generate detailed attendance reports with visual charts and statistics.
               </p>
@@ -150,9 +149,7 @@ export default function LandingPage() {
               <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Smartphone className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Mobile First
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Mobile First</h4>
               <p className="text-gray-600">
                 Native mobile experience built with React Native for optimal performance.
               </p>
@@ -163,9 +160,7 @@ export default function LandingPage() {
               <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <CheckCircle className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Easy to Use
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Easy to Use</h4>
               <p className="text-gray-600">
                 Intuitive interface designed for quick adoption with minimal training required.
               </p>
@@ -178,12 +173,8 @@ export default function LandingPage() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
-              How It Works
-            </h3>
-            <p className="text-lg text-gray-600">
-              Get started in three simple steps
-            </p>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">How It Works</h3>
+            <p className="text-lg text-gray-600">Get started in three simple steps</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -192,9 +183,7 @@ export default function LandingPage() {
               <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                 1
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Download the App
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Download the App</h4>
               <p className="text-gray-600">
                 Download the APK file and install it on your Android device.
               </p>
@@ -205,9 +194,7 @@ export default function LandingPage() {
               <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                 2
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Create Account
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Create Account</h4>
               <p className="text-gray-600">
                 Sign up as a teacher or student with your college credentials.
               </p>
@@ -218,9 +205,7 @@ export default function LandingPage() {
               <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                 3
               </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                Start Tracking
-              </h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Start Tracking</h4>
               <p className="text-gray-600">
                 Begin marking attendance and monitoring your classes effortlessly.
               </p>
@@ -236,7 +221,8 @@ export default function LandingPage() {
             Ready to Transform Your Attendance Management?
           </h3>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join hundreds of educational institutions already using Attendly to streamline their operations.
+            Join hundreds of educational institutions already using Attendly to streamline their
+            operations.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
@@ -314,7 +300,12 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <a href="https://github.com/shivamj-0303/Attendly" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
+                  <a
+                    href="https://github.com/shivamj-0303/Attendly"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition"
+                  >
                     GitHub
                   </a>
                 </li>
@@ -328,5 +319,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

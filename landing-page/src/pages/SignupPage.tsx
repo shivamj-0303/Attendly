@@ -1,44 +1,52 @@
-import { useNavigate, Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
-import { UserPlus } from 'lucide-react'
-import { authService } from '@/services/authService'
-import { useAuthStore } from '@/store/authStore'
-import type { SignupRequest } from '@/types/auth'
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { UserPlus } from 'lucide-react';
+import { FormInput, FormSection } from '@/components';
+import { authService } from '@/services/authService';
+import { useAuthStore } from '@/store/authStore';
+import type { ErrorResponse, SignupRequest } from '@/types';
+
+const EMAIL_PATTERN = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+const PASSWORD_PATTERN = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$/;
+const PHONE_PATTERN = /^[0-9]{10}$/;
+const POSTAL_CODE_PATTERN = /^[0-9]{6}$/;
 
 export default function SignupPage() {
-  const navigate = useNavigate()
-  const setAuth = useAuthStore((state) => state.setAuth)
-  const { register, handleSubmit, formState: { errors } } = useForm<SignupRequest>()
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+  } = useForm<SignupRequest>();
 
   const signupMutation = useMutation({
     mutationFn: authService.signup,
+    onError: (error: ErrorResponse) => {
+      toast.error(error.message ?? 'Signup failed');
+    },
     onSuccess: (data) => {
       setAuth(
         {
+          email: data.email,
           id: data.id,
           name: data.name,
-          email: data.email,
           phone: '',
           role: data.role,
         },
-        data.token,
-      )
-      toast.success('Account created successfully!')
-      void navigate('/admin/dashboard')
+        data.token
+      );
+      toast.success('Account created successfully!');
+      void navigate('/admin/dashboard');
     },
-    onError: (error: unknown) => {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : 'Signup failed'
-      toast.error(errorMessage || 'Signup failed')
-    },
-  })
+  });
 
   const onSubmit = (data: SignupRequest) => {
-    signupMutation.mutate(data)
-  }
+    signupMutation.mutate(data);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
@@ -52,267 +60,192 @@ export default function SignupPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Admin Details Section */}
-          <div className="pb-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Admin Details</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('name', {
-                    required: 'Name is required',
-                    minLength: {
-                      value: 2,
-                      message: 'Name must be at least 2 characters',
-                    },
-                  })}
-                  type="text"
-                  id="name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="John Doe"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                )}
-              </div>
+          <FormSection title="Admin Details" showBorder>
+            <FormInput
+              error={errors.name}
+              id="name"
+              label="Full Name"
+              placeholder="John Doe"
+              register={register('name', {
+                minLength: {
+                  message: 'Name must be at least 2 characters',
+                  value: 2,
+                },
+                required: 'Name is required',
+              })}
+              required
+              type="text"
+            />
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('email', {
-                    required: 'Email is required',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address',
-                    },
-                  })}
-                  type="email"
-                  id="email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="admin@example.com"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-                )}
-              </div>
+            <FormInput
+              error={errors.email}
+              id="email"
+              label="Email Address"
+              placeholder="admin@example.com"
+              register={register('email', {
+                pattern: {
+                  message: 'Invalid email address',
+                  value: EMAIL_PATTERN,
+                },
+                required: 'Email is required',
+              })}
+              required
+              type="email"
+            />
 
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('phone', {
-                    required: 'Phone is required',
-                    pattern: {
-                      value: /^[0-9]{10}$/,
-                      message: 'Phone must be 10 digits',
-                    },
-                  })}
-                  type="tel"
-                  id="phone"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="1234567890"
-                />
-                {errors.phone && (
-                  <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-                )}
-              </div>
+            <FormInput
+              error={errors.phone}
+              id="phone"
+              label="Phone Number"
+              placeholder="1234567890"
+              register={register('phone', {
+                pattern: {
+                  message: 'Phone must be 10 digits',
+                  value: PHONE_PATTERN,
+                },
+                required: 'Phone is required',
+              })}
+              required
+              type="tel"
+            />
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('password', {
-                    required: 'Password is required',
-                    minLength: {
-                      value: 8,
-                      message: 'Password must be at least 8 characters',
-                    },
-                    pattern: {
-                      value: /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$/,
-                      message: 'Password must contain uppercase, lowercase, number, and special character',
-                    },
-                  })}
-                  type="password"
-                  id="password"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Create a strong password"
-                />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                )}
-              </div>
+            <FormInput
+              error={errors.password}
+              id="password"
+              label="Password"
+              placeholder="Create a strong password"
+              register={register('password', {
+                minLength: {
+                  message: 'Password must be at least 8 characters',
+                  value: 8,
+                },
+                pattern: {
+                  message:
+                    'Password must contain uppercase, lowercase, number, and special character',
+                  value: PASSWORD_PATTERN,
+                },
+                required: 'Password is required',
+              })}
+              required
+              type="password"
+            />
+          </FormSection>
+
+          <FormSection title="Institution Details">
+            <FormInput
+              error={errors.institution}
+              id="institution"
+              label="Institution Name"
+              placeholder="ABC University"
+              register={register('institution', {
+                minLength: {
+                  message: 'Institution name must be at least 3 characters',
+                  value: 3,
+                },
+                required: 'Institution name is required',
+              })}
+              required
+              type="text"
+            />
+
+            <FormInput
+              error={errors.institutionEmail}
+              id="institutionEmail"
+              label="Institution Email"
+              placeholder="info@abcuniversity.edu"
+              register={register('institutionEmail', {
+                pattern: {
+                  message: 'Invalid email address',
+                  value: EMAIL_PATTERN,
+                },
+                required: 'Institution email is required',
+              })}
+              required
+              type="email"
+            />
+
+            <FormInput
+              error={errors.institutionPhone}
+              id="institutionPhone"
+              label="Institution Phone"
+              placeholder="9876543210"
+              register={register('institutionPhone', {
+                pattern: {
+                  message: 'Phone must be 10 digits',
+                  value: PHONE_PATTERN,
+                },
+                required: 'Institution phone is required',
+              })}
+              required
+              type="tel"
+            />
+
+            <FormInput
+              error={errors.institutionAddress}
+              id="institutionAddress"
+              label="Street Address"
+              placeholder="123 Main Street"
+              register={register('institutionAddress', {
+                minLength: {
+                  message: 'Address must be at least 5 characters',
+                  value: 5,
+                },
+                required: 'Address is required',
+              })}
+              required
+              type="text"
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput
+                error={errors.institutionCity}
+                id="institutionCity"
+                label="City"
+                placeholder="Mumbai"
+                register={register('institutionCity', {
+                  minLength: {
+                    message: 'City must be at least 2 characters',
+                    value: 2,
+                  },
+                  required: 'City is required',
+                })}
+                required
+                type="text"
+              />
+
+              <FormInput
+                error={errors.institutionState}
+                id="institutionState"
+                label="State"
+                placeholder="Maharashtra"
+                register={register('institutionState', {
+                  minLength: {
+                    message: 'State must be at least 2 characters',
+                    value: 2,
+                  },
+                  required: 'State is required',
+                })}
+                required
+                type="text"
+              />
             </div>
-          </div>
 
-          {/* Institution Details Section */}
-          <div className="pt-2">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Institution Details</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="institution" className="block text-sm font-medium text-gray-700 mb-1">
-                  Institution Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('institution', {
-                    required: 'Institution name is required',
-                    minLength: {
-                      value: 3,
-                      message: 'Institution name must be at least 3 characters',
-                    },
-                  })}
-                  type="text"
-                  id="institution"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="ABC University"
-                />
-                {errors.institution && (
-                  <p className="mt-1 text-sm text-red-600">{errors.institution.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="institutionEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                  Institution Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('institutionEmail', {
-                    required: 'Institution email is required',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address',
-                    },
-                  })}
-                  type="email"
-                  id="institutionEmail"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="info@abcuniversity.edu"
-                />
-                {errors.institutionEmail && (
-                  <p className="mt-1 text-sm text-red-600">{errors.institutionEmail.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="institutionPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Institution Phone <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('institutionPhone', {
-                    required: 'Institution phone is required',
-                    pattern: {
-                      value: /^[0-9]{10}$/,
-                      message: 'Phone must be 10 digits',
-                    },
-                  })}
-                  type="tel"
-                  id="institutionPhone"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="9876543210"
-                />
-                {errors.institutionPhone && (
-                  <p className="mt-1 text-sm text-red-600">{errors.institutionPhone.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="institutionAddress" className="block text-sm font-medium text-gray-700 mb-1">
-                  Street Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('institutionAddress', {
-                    required: 'Address is required',
-                    minLength: {
-                      value: 5,
-                      message: 'Address must be at least 5 characters',
-                    },
-                  })}
-                  type="text"
-                  id="institutionAddress"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="123 Main Street"
-                />
-                {errors.institutionAddress && (
-                  <p className="mt-1 text-sm text-red-600">{errors.institutionAddress.message}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="institutionCity" className="block text-sm font-medium text-gray-700 mb-1">
-                    City <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    {...register('institutionCity', {
-                      required: 'City is required',
-                      minLength: {
-                        value: 2,
-                        message: 'City must be at least 2 characters',
-                      },
-                    })}
-                    type="text"
-                    id="institutionCity"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Mumbai"
-                  />
-                  {errors.institutionCity && (
-                    <p className="mt-1 text-sm text-red-600">{errors.institutionCity.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="institutionState" className="block text-sm font-medium text-gray-700 mb-1">
-                    State <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    {...register('institutionState', {
-                      required: 'State is required',
-                      minLength: {
-                        value: 2,
-                        message: 'State must be at least 2 characters',
-                      },
-                    })}
-                    type="text"
-                    id="institutionState"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Maharashtra"
-                  />
-                  {errors.institutionState && (
-                    <p className="mt-1 text-sm text-red-600">{errors.institutionState.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="institutionPostalCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  Postal Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('institutionPostalCode', {
-                    required: 'Postal code is required',
-                    pattern: {
-                      value: /^[0-9]{6}$/,
-                      message: 'Postal code must be 6 digits',
-                    },
-                  })}
-                  type="text"
-                  id="institutionPostalCode"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="400001"
-                />
-                {errors.institutionPostalCode && (
-                  <p className="mt-1 text-sm text-red-600">{errors.institutionPostalCode.message}</p>
-                )}
-              </div>
-            </div>
-          </div>
+            <FormInput
+              error={errors.institutionPostalCode}
+              id="institutionPostalCode"
+              label="Postal Code"
+              placeholder="400001"
+              register={register('institutionPostalCode', {
+                pattern: {
+                  message: 'Postal code must be 6 digits',
+                  value: POSTAL_CODE_PATTERN,
+                },
+                required: 'Postal code is required',
+              })}
+              required
+              type="text"
+            />
+          </FormSection>
 
           <button
             type="submit"
@@ -331,5 +264,5 @@ export default function SignupPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

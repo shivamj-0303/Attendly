@@ -12,6 +12,7 @@ module.exports = {
     'plugin:react/recommended',
     'plugin:react/jsx-runtime',
     'plugin:react-hooks/recommended',
+    'plugin:prettier/recommended', // Add Prettier integration (must be last)
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs', 'vite.config.ts', '*.config.js'],
   parser: '@typescript-eslint/parser',
@@ -77,10 +78,5 @@ module.exports = {
     'no-return-await': 'error',
     'require-await': 'warn',
     'no-throw-literal': 'error',
-    
-    // Code Style (optional, can be handled by Prettier)
-    'semi': ['error', 'never'],
-    'quotes': ['warn', 'single', { avoidEscape: true }],
-    'comma-dangle': ['warn', 'always-multiline'],
   },
 }

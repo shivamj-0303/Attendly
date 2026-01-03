@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 interface TabBarProps {
   activeTab: 'report' | 'today' | 'week';
@@ -12,6 +13,9 @@ export const ThreeTabBar: React.FC<TabBarProps> = ({
   onTabChange,
   showReportTab = false,
 }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <View style={styles.container}>
       <View onTouchEnd={() => onTabChange('today')} style={styles.tab}>
@@ -31,10 +35,10 @@ export const ThreeTabBar: React.FC<TabBarProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderTopColor: '#e5e7eb',
+    backgroundColor: theme.colors.surface,
+    borderTopColor: theme.colors.border,
     borderTopWidth: 1,
     flexDirection: 'row',
     height: 64,
@@ -45,10 +49,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontWeight: '600',
   },
   tabTextActive: {
-    color: '#10b981',
+    color: theme.colors.primary,
   },
 });

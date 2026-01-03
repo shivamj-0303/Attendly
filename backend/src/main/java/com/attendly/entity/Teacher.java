@@ -47,6 +47,9 @@ public class Teacher implements UserDetails {
   private String phone;
 
   @Column(nullable = false)
+  private Boolean firstLogin = true;
+
+  @Column(nullable = false)
   private Long departmentId;
 
   @Column(nullable = false)

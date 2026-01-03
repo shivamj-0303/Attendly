@@ -21,7 +21,8 @@ public class StudentRequest {
   @Email(message = "Email should be valid")
   private String email;
 
-  @NotBlank(message = "Password is required")
+  // Password is optional for admin-created students. If not provided, the server will
+  // generate a secure random initial password and email it to the student.
   @Size(min = 6, message = "Password must be at least 6 characters")
   private String password;
 

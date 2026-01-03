@@ -1,19 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, LogOut, User } from 'lucide-react';
+import { Calendar, User } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { AttendanceList, Button, ClassCard, DayTabs, LoadingSpinner, Modal } from '@/components';
+import { AttendanceList, Button, ClassCard, DayTabs, LoadingSpinner, Modal, ProfileDropdown } from '@/components';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
 import type { AttendanceStatus, DayOfWeek, Student, TabType, TimetableSlot } from '@/types';
 import { DAY_MAP } from '@/types/common';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function TeacherDashboardPage() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
-
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [selectedDay, setSelectedDay] = useState(0);
   const [todayClasses, setTodayClasses] = useState<TimetableSlot[]>([]);
@@ -86,12 +81,6 @@ export default function TeacherDashboardPage() {
     void loadClassStudents(classSlot);
   };
 
-  const handleLogout = () => {
-    logout();
-    toast.success('Logged out successfully');
-    void navigate('/login');
-  };
-
   const toggleAttendance = (studentId: number, status: AttendanceStatus) => {
     setStudents((prev) =>
       prev.map((s) => (s.id === studentId ? { ...s, attendanceStatus: status } : s))
@@ -142,7 +131,7 @@ export default function TeacherDashboardPage() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600">
                 <User className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -150,19 +139,7 @@ export default function TeacherDashboardPage() {
                 <p className="text-sm text-gray-600">Teacher Portal</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600"
-                title="Logout"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            </div>
+            <ProfileDropdown />
           </div>
         </div>
       </header>

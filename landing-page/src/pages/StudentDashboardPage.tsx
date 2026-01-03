@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, LogOut, User } from 'lucide-react';
+import { Calendar, Clock, User } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Button } from '@/components';
+import { Button, ProfileDropdown } from '@/components';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
 import type { AttendanceStatus, TabType, TimetableSlot } from '@/types';
 import { DAY_MAP, type DayOfWeek } from '@/types/common';
 
@@ -23,9 +21,6 @@ interface ClassSlotWithStatus extends TimetableSlot {
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function StudentDashboardPage() {
-  const navigate = useNavigate();
-  const { logout, user } = useAuthStore();
-
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(0);
@@ -93,12 +88,6 @@ export default function StudentDashboardPage() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    toast.success('Logged out successfully');
-    void navigate('/login');
-  };
-
   const getStatusColor = (status: AttendanceStatus = 'NOT_MARKED') => {
     switch (status) {
       case 'PRESENT':
@@ -156,19 +145,7 @@ export default function StudentDashboardPage() {
                 <p className="text-sm text-gray-600">Student Portal</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
+            <ProfileDropdown />
           </div>
         </div>
       </header>

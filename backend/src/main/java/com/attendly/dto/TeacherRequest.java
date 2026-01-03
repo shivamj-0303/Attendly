@@ -20,7 +20,7 @@ public class TeacherRequest {
   @Email(message = "Email should be valid")
   private String email;
 
-  @NotBlank(message = "Password is required")
+  // Password is optional - if not provided, server will generate and email a secure password
   @Size(min = 6, message = "Password must be at least 6 characters")
   private String password;
 

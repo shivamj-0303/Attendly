@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 interface HeaderProps {
   onProfilePress: () => void;
@@ -8,6 +9,9 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onProfilePress, title, userName }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   const getInitial = () => {
     if (userName) {
       return userName.charAt(0).toUpperCase();
@@ -27,11 +31,11 @@ export const Header: React.FC<HeaderProps> = ({ onProfilePress, title, userName 
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   header: {
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderBottomColor: '#e5e7eb',
+    backgroundColor: theme.colors.surface,
+    borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
     height: 74,
@@ -45,7 +49,7 @@ const styles = StyleSheet.create({
   },
   profileCircle: {
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 20,
     height: 40,
     justifyContent: 'center',
@@ -57,7 +61,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   title: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: '700',
   },

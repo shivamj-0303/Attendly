@@ -23,6 +23,7 @@ import {
 } from '../components';
 import type { ClassItem, Student } from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTeacherTimetable } from '../hooks/useTeacherTimetable';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -30,6 +31,7 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export default function TeacherScreen() {
   const navigation = useNavigation<any>();
   const { logout, user } = useAuth();
+  const { theme } = useTheme();
   const {
     handleRefresh,
     isRefreshing,
@@ -53,6 +55,8 @@ export default function TeacherScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
+
+  const styles = getStyles(theme);
 
   useEffect(() => {
     loadToday();
@@ -345,7 +349,10 @@ export default function TeacherScreen() {
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('PasswordReset')}
+              onPress={() => {
+                setProfileOpen(false);
+                navigation.navigate('PasswordReset');
+              }}
               style={styles.resetButton}
             >
               <Text style={styles.buttonText}>Reset Password</Text>
@@ -361,9 +368,9 @@ export default function TeacherScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   attendanceContainer: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: theme.colors.background,
     flex: 1,
   },
   attendanceContent: {
@@ -371,8 +378,8 @@ const styles = StyleSheet.create({
   },
   attendanceHeader: {
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderBottomColor: '#e5e7eb',
+    backgroundColor: theme.colors.surface,
+    borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
     height: 60,
@@ -380,7 +387,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   attendanceHeaderTitle: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -390,12 +397,12 @@ const styles = StyleSheet.create({
     width: 40,
   },
   backButtonText: {
-    color: '#10b981',
+    color: theme.colors.primary,
     fontSize: 28,
     fontWeight: '700',
   },
   bottomActions: {
-    borderTopColor: '#e5e7eb',
+    borderTopColor: theme.colors.border,
     borderTopWidth: 1,
     flexDirection: 'row',
     gap: 12,
@@ -412,13 +419,13 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     alignItems: 'center',
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.border,
     borderRadius: 10,
     flex: 1,
     paddingVertical: 16,
   },
   cancelBtnText: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -428,18 +435,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   classInfoSection: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.mode === 'light' ? '#f9fafb' : theme.colors.surface,
     borderRadius: 10,
     marginBottom: 16,
     padding: 12,
   },
   closeIcon: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 24,
     fontWeight: '700',
   },
   container: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
@@ -447,19 +454,19 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   detailLabel: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
     width: 120,
   },
   detailRow: {
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
     paddingVertical: 12,
   },
   detailValue: {
-    color: '#111827',
+    color: theme.colors.text,
     flex: 1,
     fontSize: 16,
   },
@@ -467,7 +474,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   detailsModalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 20,
     marginHorizontal: 20,
     marginVertical: 'auto',
@@ -481,19 +488,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   detailsModalTitle: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: '700',
   },
   label: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 14,
     fontWeight: '600',
     width: 80,
   },
   markAttendanceBtn: {
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 10,
     marginTop: 8,
     paddingVertical: 14,
@@ -510,12 +517,12 @@ const styles = StyleSheet.create({
     width: 40,
   },
   menuButtonText: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 28,
     fontWeight: '700',
   },
   menuContent: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     elevation: 5,
     minWidth: 200,
@@ -525,7 +532,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   menuDivider: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.border,
     height: 1,
   },
   menuItem: {
@@ -533,10 +540,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   menuItemDanger: {
-    color: '#ef4444',
+    color: theme.colors.error,
   },
   menuItemText: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -565,7 +572,7 @@ const styles = StyleSheet.create({
   profileLargeCircle: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 60,
     height: 120,
     justifyContent: 'center',
@@ -579,14 +586,14 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 10,
     marginBottom: 12,
     paddingVertical: 16,
   },
   saveBtn: {
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 10,
     flex: 1,
     paddingVertical: 16,
@@ -597,19 +604,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   sectionTitle: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 8,
   },
   signoutButton: {
     alignItems: 'center',
-    backgroundColor: '#ef4444',
+    backgroundColor: theme.colors.error,
     borderRadius: 10,
     paddingVertical: 16,
   },
   studentsTitle: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 12,
@@ -618,7 +625,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   value: {
-    color: '#111827',
+    color: theme.colors.text,
     flex: 1,
     fontSize: 16,
     fontWeight: '500',

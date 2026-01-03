@@ -1,9 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function DashboardScreen() {
   const { user, logout } = useAuth();
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -21,9 +24,6 @@ export default function DashboardScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.iconContainer}>
-          <Text style={styles.iconText}>✓</Text>
-        </View>
         <Text style={styles.title}>Welcome!</Text>
         <Text style={styles.subtitle}>{user?.name}</Text>
         <Text style={styles.email}>{user?.email}</Text>
@@ -77,13 +77,13 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.colors.primary,
     padding: 30,
     paddingTop: 60,
     alignItems: 'center',
@@ -94,14 +94,14 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   iconText: {
     fontSize: 40,
-    color: '#2563eb',
+    color: theme.colors.primary,
     fontWeight: 'bold',
   },
   title: {
@@ -112,18 +112,18 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 18,
-    color: '#dbeafe',
+    color: theme.mode === 'light' ? '#dbeafe' : '#bfdbfe',
     marginBottom: 4,
   },
   email: {
     fontSize: 14,
-    color: '#bfdbfe',
+    color: theme.mode === 'light' ? '#bfdbfe' : '#93c5fd',
   },
   content: {
     padding: 20,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
+    color: theme.colors.text,
     marginBottom: 16,
   },
   statsRow: {
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#2563eb',
+    color: theme.colors.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
   },
   emptyState: {
     padding: 20,
@@ -162,10 +162,10 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: theme.colors.textSecondary,
   },
   logoutButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: theme.colors.error,
     margin: 20,
     padding: 16,
     borderRadius: 8,
@@ -184,12 +184,12 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
+    color: theme.colors.text,
     marginBottom: 12,
   },
   footerSubtext: {
     fontSize: 14,
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },

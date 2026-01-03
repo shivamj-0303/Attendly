@@ -24,6 +24,19 @@ public class EmailService {
     }
   }
 
+  /**
+   * Generic send email helper (HTML)
+   */
+  public void sendEmail(String to, String subject, String htmlContent) {
+    try {
+      gmailApiService.sendEmail(to, subject, htmlContent);
+      log.info("✅ Email sent successfully to: {}", to);
+    } catch (Exception e) {
+      log.error("❌ Failed to send email to: {}", to, e);
+      throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
+    }
+  }
+
   private String formatOtpEmail(String name, String otpCode, String purpose) {
     return String.format(
         """

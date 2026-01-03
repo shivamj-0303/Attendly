@@ -13,16 +13,20 @@ import {
 
 import { FormInput } from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useFormValidation } from '../hooks/useFormValidation';
 
 export default function LoginScreen({ navigation }: any) {
   const { login } = useAuth();
+  const { theme } = useTheme();
   const { errors, validateForm } = useFormValidation();
 
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState<'student' | 'teacher'>('student');
+
+  const styles = getStyles(theme);
 
   const handleLogin = async () => {
     const isValid = validateForm({
@@ -58,10 +62,7 @@ export default function LoginScreen({ navigation }: any) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <View style={styles.iconContainer}>
-              <Text style={styles.iconText}>✓</Text>
-            </View>
-            <Text style={styles.title}>Attendly</Text>
+            <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Smart Attendance Management</Text>
           </View>
 
@@ -149,10 +150,10 @@ export default function LoginScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   button: {
     alignItems: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.colors.primary,
     borderRadius: 8,
     marginTop: 8,
     padding: 16,
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   container: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   footerText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 14,
   },
   forgotPasswordButton: {
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   forgotPasswordText: {
-    color: '#2563eb',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     alignItems: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.colors.primary,
     borderRadius: 40,
     height: 80,
     justifyContent: 'center',
@@ -214,13 +215,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   label: {
-    color: '#374151',
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
   },
   link: {
-    color: '#2563eb',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -228,26 +229,26 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   subtitle: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 16,
   },
   title: {
-    color: '#1f2937',
+    color: theme.colors.text,
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   userTypeButton: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     flex: 1,
     paddingVertical: 12,
   },
   userTypeButtonActive: {
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.colors.primary,
   },
   userTypeContainer: {
-    borderColor: '#d1d5db',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   userTypeText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -1,9 +1,12 @@
 import React from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { EmptyState, LoadingSpinner, SubjectAttendanceCard } from '../components';
+import { useTheme } from '../context/ThemeContext';
 import { useStudentReport } from '../hooks';
 
 export const ReportScreen: React.FC = () => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
   const {
     handleRefresh,
     isLoading,
@@ -22,9 +25,9 @@ export const ReportScreen: React.FC = () => {
   }
 
   const getOverallColor = (percentage: number): string => {
-    if (percentage >= 75) return '#10b981';
+    if (percentage >= 75) return theme.colors.primary;
     if (percentage >= 60) return '#f59e0b';
-    return '#ef4444';
+    return theme.colors.error;
   };
 
   const overallColor = getOverallColor(reportData.overallPercentage);
@@ -64,7 +67,7 @@ export const ReportScreen: React.FC = () => {
         keyExtractor={(item) => item.subjectName}
         refreshControl={
           <RefreshControl
-            colors={['#10b981']}
+            colors={[theme.colors.primary]}
             onRefresh={handleRefresh}
             refreshing={isRefreshing}
           />
@@ -83,9 +86,9 @@ export const ReportScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.colors.background,
     flex: 1,
   },
   listContent: {
@@ -93,7 +96,7 @@ const styles = StyleSheet.create({
   },
   overallCard: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     elevation: 3,
     marginBottom: 24,
@@ -104,7 +107,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   overallLabel: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 8,
@@ -117,7 +120,7 @@ const styles = StyleSheet.create({
   },
   overallStats: {
     alignItems: 'center',
-    borderTopColor: '#e5e7eb',
+    borderTopColor: theme.colors.border,
     borderTopWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -125,7 +128,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   statDivider: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.border,
     height: 40,
     width: 1,
   },
@@ -134,18 +137,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statLabel: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 12,
     marginTop: 4,
   },
   statValue: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 24,
     fontWeight: '700',
   },
   subjectsHeader: {
     alignSelf: 'flex-start',
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '600',
     marginTop: 24,

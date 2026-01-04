@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 export type AttendanceStatus = 'absent' | 'leave' | 'not_marked' | 'present';
 
@@ -18,16 +19,19 @@ interface StudentClassCardProps {
 }
 
 export const StudentClassCard: React.FC<StudentClassCardProps> = ({ item, onPress }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   const getStatusColor = (status: AttendanceStatus): string => {
     switch (status) {
       case 'present':
-        return '#10b981';
+        return theme.colors.primary;
       case 'absent':
-        return '#ef4444';
+        return theme.colors.error;
       case 'leave':
         return '#f59e0b';
       default:
-        return '#9ca3af';
+        return theme.colors.textSecondary;
     }
   };
 
@@ -50,10 +54,10 @@ export const StudentClassCard: React.FC<StudentClassCardProps> = ({ item, onPres
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   card: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 10,
     elevation: 1,
     flexDirection: 'row',
@@ -81,22 +85,23 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   subjectText: {
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
   teacherText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     marginTop: 4,
   },
   timeSub: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 12,
   },
   timeColumn: {
     width: 80,
   },
   timeText: {
-    color: '#111827',
+    color: theme.colors.text,
     fontWeight: '700',
   },
 });

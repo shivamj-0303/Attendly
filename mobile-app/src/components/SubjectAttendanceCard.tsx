@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 interface SubjectAttendanceCardProps {
   percentage: number;
@@ -14,10 +15,13 @@ export const SubjectAttendanceCard: React.FC<SubjectAttendanceCardProps> = ({
   subjectName,
   totalCount,
 }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   const getProgressColor = (perc: number): string => {
-    if (perc >= 75) return '#10b981';
+    if (perc >= 75) return theme.colors.primary;
     if (perc >= 60) return '#f59e0b';
-    return '#ef4444';
+    return theme.colors.error;
   };
 
   const progressColor = getProgressColor(percentage);
@@ -51,9 +55,9 @@ export const SubjectAttendanceCard: React.FC<SubjectAttendanceCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     elevation: 2,
     marginBottom: 12,
@@ -69,7 +73,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   footerText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 12,
   },
   header: {
@@ -87,14 +91,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   progressBarContainer: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.border,
     borderRadius: 4,
     height: 8,
     overflow: 'hidden',
     width: '100%',
   },
   subjectName: {
-    color: '#111827',
+    color: theme.colors.text,
     flex: 1,
     fontSize: 16,
     fontWeight: '600',

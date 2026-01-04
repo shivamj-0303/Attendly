@@ -121,7 +121,9 @@ public class PasswordResetService {
     otpService.deleteOtp(otp);
 
     Map<String, String> response = new HashMap<>();
-    response.put("message", "Password reset successfully");
+  response.put("message", "Password reset successfully");
+  // Instruct clients to redirect to login after resetting password for security
+  response.put("redirect", "LOGIN");
 
     return response;
   }

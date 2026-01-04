@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 import { AttendanceStatus } from '../types';
 
@@ -20,6 +21,9 @@ export const StudentAttendanceRow: React.FC<StudentAttendanceRowProps> = ({
   onStatusChange,
   student,
 }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <View style={styles.row}>
       <View style={styles.info}>
@@ -66,13 +70,13 @@ export const StudentAttendanceRow: React.FC<StudentAttendanceRowProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   absentButton: {
-    backgroundColor: '#fff',
-    borderColor: '#ef4444',
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.error,
   },
   absentButtonActive: {
-    backgroundColor: '#ef4444',
+    backgroundColor: theme.colors.error,
   },
   button: {
     borderRadius: 6,
@@ -81,7 +85,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   buttonText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -96,25 +100,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
   presentButton: {
-    backgroundColor: '#fff',
-    borderColor: '#10b981',
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.primary,
   },
   presentButtonActive: {
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
   },
   roll: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
   row: {
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.mode === 'light' ? '#f9fafb' : theme.colors.surface,
     borderRadius: 8,
     flexDirection: 'row',
     marginBottom: 8,

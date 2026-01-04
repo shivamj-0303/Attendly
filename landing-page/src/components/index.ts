@@ -14,6 +14,8 @@ export { FormSection } from './FormSection';
 export { default as Layout } from './Layout';
 export { LoadingSpinner } from './LoadingSpinner';
 export { Modal } from './Modal';
+export { default as PasswordResetModal } from './PasswordResetModal';
+export { default as ProfileDropdown } from './ProfileDropdown';
 export { StudentTable } from './StudentTable';
 export { TeacherDropdown } from './TeacherDropdown';
 export { TeacherTable } from './TeacherTable';

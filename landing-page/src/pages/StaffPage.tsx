@@ -2,20 +2,8 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import api from '@/lib/api';
-
-interface Teacher {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  departmentId: number;
-  isActive: boolean;
-}
-
-interface Department {
-  id: number;
-  name: string;
-}
+import type { Department } from '@/types/department';
+import type { Teacher } from '@/types/teacher';
 
 export default function StaffPage() {
   const [searchQuery, setSearchQuery] = useState('');

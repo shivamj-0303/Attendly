@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 interface ButtonProps {
   onPress: () => void;
@@ -8,6 +9,9 @@ interface ButtonProps {
 }
 
 export const Button: React.FC<ButtonProps> = ({ onPress, text, variant = 'primary' }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   const getButtonStyle = (): ViewStyle => {
     switch (variant) {
       case 'primary':
@@ -39,7 +43,7 @@ export const Button: React.FC<ButtonProps> = ({ onPress, text, variant = 'primar
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   baseButtonText: {
     fontSize: 16,
     fontWeight: '700',
@@ -53,18 +57,18 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   dangerButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: theme.colors.error,
   },
   ghostButton: {
     backgroundColor: 'transparent',
   },
   ghostButtonText: {
-    color: '#111827',
+    color: theme.colors.text,
   },
   primaryButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
   },
   secondaryButton: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.border,
   },
 });

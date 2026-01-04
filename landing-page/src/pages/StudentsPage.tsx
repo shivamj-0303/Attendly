@@ -6,15 +6,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { AddStudentModal, StudentTable } from '@/components';
 import type { ErrorResponse, Student } from '@/types';
-
-interface Class {
-  departmentId: number;
-  id: number;
-  isActive: boolean;
-  name: string;
-  semester: number;
-  year: number;
-}
+import type { Class } from '@/types/department';
 
 export default function StudentsPage() {
   const { classId } = useParams();

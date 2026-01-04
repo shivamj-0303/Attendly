@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,14 +12,17 @@ import {
   View,
 } from 'react-native';
 import { FormInput } from '../components';
+import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
 
 type Step = 'email' | 'reset';
 type UserType = 'STUDENT' | 'TEACHER';
 
 export default function PasswordResetScreen({ navigation }: any) {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { theme } = useTheme();
   const [currentStep, setCurrentStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +31,20 @@ export default function PasswordResetScreen({ navigation }: any) {
   const [otpCode, setOtpCode] = useState('');
   const [userType, setUserType] = useState<UserType>('STUDENT');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const styles = getStyles(theme);
+  
+  // Determine if user is authenticated (changing password) or not (forgot password)
+  const isAuthenticated = !!user;
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      navigation.goBack();
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const handleRequestOTP = async () => {
     if (!email.trim()) {
@@ -81,17 +99,28 @@ export default function PasswordResetScreen({ navigation }: any) {
 
     setIsLoading(true);
     try {
-      await api.post('/auth/user/reset-password', {
+      const response = await api.post('/auth/user/reset-password', {
         newPassword,
         otpCode: otpCode.trim(),
       });
 
-      Alert.alert('Success', 'Password reset successfully! Please login with your new password.', [
+      // Backend returns redirect hint - handle navigation based on it
+      const redirect = response.data?.redirect;
+
+      const successMessage = isAuthenticated 
+        ? 'Password changed successfully!' 
+        : 'Password reset successfully! Please login with your new password.';
+
+      Alert.alert('Success', successMessage, [
         {
           onPress: async () => {
-            await logout();
-            // After logout, the app will automatically redirect to AuthNavigator (Login screen)
-            // No need to explicitly navigate
+            if (isAuthenticated) {
+              // User was logged in - just go back to profile/previous screen
+              navigation.goBack();
+            } else {
+              // User was not logged in (forgot password flow) - logout and go to login
+              await logout();
+            }
           },
           text: 'OK',
         },
@@ -251,48 +280,37 @@ export default function PasswordResetScreen({ navigation }: any) {
   );
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          <View style={styles.header}>
+    <View style={styles.container}>
+      <Header 
+        title="Password Reset"
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.content}>
             <View style={styles.iconContainer}>
               <Text style={styles.iconText}>🔐</Text>
             </View>
-            <Text style={styles.title}>Password Reset</Text>
+
+            {renderStepIndicator()}
+
+            {currentStep === 'email' && renderEmailStep()}
+            {currentStep === 'reset' && renderOTPStep()}
           </View>
-
-          {renderStepIndicator()}
-
-          {currentStep === 'email' && renderEmailStep()}
-          {currentStep === 'reset' && renderOTPStep()}
-
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Text style={styles.backText}>← Back to Login</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  backButton: {
-    marginTop: 20,
-  },
-  backText: {
-    color: '#6b7280',
-    fontSize: 14,
-    textAlign: 'center',
-  },
+const getStyles = (theme: any) => StyleSheet.create({
   button: {
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 12,
     height: 50,
     justifyContent: 'center',
@@ -307,23 +325,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   container: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.colors.background,
+    flex: 1,
+  },
+  keyboardView: {
     flex: 1,
   },
   content: {
     padding: 24,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
   iconContainer: {
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 40,
     height: 80,
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 32,
+    alignSelf: 'center',
     width: 80,
   },
   iconText: {
@@ -333,7 +351,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   resendText: {
-    color: '#10b981',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
@@ -343,17 +361,17 @@ const styles = StyleSheet.create({
   },
   stepCircle: {
     alignItems: 'center',
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.border,
     borderRadius: 20,
     height: 40,
     justifyContent: 'center',
     width: 40,
   },
   stepCircleActive: {
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
   },
   stepCircleCompleted: {
-    backgroundColor: '#059669',
+    backgroundColor: theme.mode === 'light' ? '#059669' : theme.colors.primary,
   },
   stepContainer: {
     alignItems: 'center',
@@ -362,7 +380,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   stepDescription: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 24,
@@ -376,21 +394,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   stepLabel: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 12,
     marginTop: 8,
   },
   stepLine: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.border,
     flex: 1,
     height: 2,
     marginHorizontal: 8,
   },
   stepLineCompleted: {
-    backgroundColor: '#059669',
+    backgroundColor: theme.mode === 'light' ? '#059669' : theme.colors.primary,
   },
   stepNumber: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -398,28 +416,23 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   stepTitle: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 24,
     fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
-  title: {
-    color: '#111827',
-    fontSize: 28,
-    fontWeight: '700',
-  },
   userTypeButton: {
-    backgroundColor: '#fff',
-    borderColor: '#d1d5db',
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border,
     borderRadius: 12,
     borderWidth: 2,
     flex: 1,
     paddingVertical: 12,
   },
   userTypeButtonActive: {
-    backgroundColor: '#d1fae5',
-    borderColor: '#10b981',
+    backgroundColor: theme.mode === 'light' ? '#d1fae5' : theme.colors.surface,
+    borderColor: theme.colors.primary,
   },
   userTypeContainer: {
     flexDirection: 'row',
@@ -427,12 +440,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   userTypeText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   userTypeTextActive: {
-    color: '#10b981',
+    color: theme.colors.primary,
   },
 });

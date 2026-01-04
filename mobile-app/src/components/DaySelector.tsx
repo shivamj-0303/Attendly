@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 interface DaySelectorProps {
   days: string[];
@@ -8,6 +9,9 @@ interface DaySelectorProps {
 }
 
 export const DaySelector: React.FC<DaySelectorProps> = ({ days, onDaySelect, selectedIndex }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -32,14 +36,14 @@ export const DaySelector: React.FC<DaySelectorProps> = ({ days, onDaySelect, sel
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     marginVertical: 12,
   },
   dayButton: {
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderColor: '#e5e7eb',
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border,
     borderRadius: 16,
     borderWidth: 1,
     marginRight: 8,
@@ -48,11 +52,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   dayButtonActive: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   dayText: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: '600',
   },

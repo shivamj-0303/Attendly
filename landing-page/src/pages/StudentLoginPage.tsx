@@ -1,27 +1,57 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock, User, GraduationCap } from 'lucide-react';
+import toast from 'react-hot-toast';
+import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
+import type { AxiosError } from 'axios';
+
+interface LoginResponse {
+  token: string;
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export default function StudentLoginPage() {
-  // const navigate = useNavigate() // Will be used when API is implemented
+  const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState<'student' | 'teacher'>('student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      // TODO: Implement student/teacher login API
-      // Future: Call API with userType, email, password
-      // navigate('/dashboard') // After implementation
-      setError('Student/Teacher login not yet implemented. Please use admin login.');
+      const endpoint =
+        userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
+      const response = await api.post<LoginResponse>(endpoint, { email, password });
+
+      const { token, id, name, email: userEmail, role } = response.data;
+
+      // Store authentication data
+      setAuth({ id, name, email: userEmail, phone: '', role }, token);
+
+      toast.success(`Welcome back, ${name}!`);
+
+      // Navigate to appropriate dashboard
+      if (userType === 'student') {
+        void navigate('/student/dashboard');
+      } else {
+        void navigate('/teacher/dashboard');
+      }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      const axiosError = err as AxiosError<{ message: string }>;
+      const errorMessage =
+        axiosError.response?.data?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

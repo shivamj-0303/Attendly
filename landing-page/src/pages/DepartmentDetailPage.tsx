@@ -2,32 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, Users, BookOpen } from 'lucide-react';
 import api from '@/lib/api';
-
-interface Department {
-  id: number;
-  name: string;
-  code: string;
-  description: string;
-  isActive: boolean;
-}
-
-interface Teacher {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  departmentId: number;
-  isActive: boolean;
-}
-
-interface Class {
-  id: number;
-  name: string;
-  semester: number;
-  year: number;
-  departmentId: number;
-  isActive: boolean;
-}
+import type { Department, Class } from '@/types/department';
+import type { Teacher } from '@/types/teacher';
 
 export default function DepartmentDetailPage() {
   const { id } = useParams();

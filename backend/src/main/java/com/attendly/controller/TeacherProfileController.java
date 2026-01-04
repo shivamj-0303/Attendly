@@ -1,8 +1,8 @@
 package com.attendly.controller;
 
-import com.attendly.entity.Student;
+import com.attendly.entity.Teacher;
 import com.attendly.exception.ResourceNotFoundException;
-import com.attendly.repository.StudentRepository;
+import com.attendly.repository.TeacherRepository;
 import com.attendly.security.UserPrincipal;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -11,43 +11,43 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/student")
+@RequestMapping("/teacher")
 @RequiredArgsConstructor
-public class StudentProfileController {
+public class TeacherProfileController {
 
-  private final StudentRepository studentRepository;
+  private final TeacherRepository teacherRepository;
 
   @GetMapping("/profile")
-  public ResponseEntity<Student> getProfile(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-    Student student =
-        studentRepository
+  public ResponseEntity<Teacher> getProfile(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    Teacher teacher =
+        teacherRepository
             .findById(userPrincipal.getId())
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
-                        "Student not found with id: " + userPrincipal.getId()));
-    return ResponseEntity.ok(student);
+                        "Teacher not found with id: " + userPrincipal.getId()));
+    return ResponseEntity.ok(teacher);
   }
 
   @PutMapping("/profile")
-  public ResponseEntity<Student> updateProfile(
+  public ResponseEntity<Teacher> updateProfile(
       @RequestBody Map<String, String> updates,
       @AuthenticationPrincipal UserPrincipal userPrincipal) {
     
-    Student student =
-        studentRepository
+    Teacher teacher =
+        teacherRepository
             .findById(userPrincipal.getId())
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
-                        "Student not found with id: " + userPrincipal.getId()));
+                        "Teacher not found with id: " + userPrincipal.getId()));
 
     // Only allow updating phone number
     if (updates.containsKey("phone")) {
-      student.setPhone(updates.get("phone"));
+      teacher.setPhone(updates.get("phone"));
     }
 
-    studentRepository.save(student);
-    return ResponseEntity.ok(student);
+    teacherRepository.save(teacher);
+    return ResponseEntity.ok(teacher);
   }
 }

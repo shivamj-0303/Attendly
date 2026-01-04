@@ -6,14 +6,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { AddTeacherModal, TeacherTable } from '@/components';
 import type { ErrorResponse, Teacher } from '@/types';
-
-interface Department {
-  code: string;
-  description: string;
-  id: number;
-  isActive: boolean;
-  name: string;
-}
+import type { Department } from '@/types/department';
 
 export default function TeachersPage() {
   const { id: departmentId } = useParams();

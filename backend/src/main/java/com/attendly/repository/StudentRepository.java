@@ -15,9 +15,15 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
   List<Student> findByAdminId(Long adminId);
 
+  List<Student> findByAdminIdAndIsActive(Long adminId, Boolean isActive);
+
   List<Student> findByClassId(Long classId);
 
+  List<Student> findByClassIdAndIsActive(Long classId, Boolean isActive);
+
   List<Student> findByClassIdOrderByRollNumber(Long classId);
+
+  List<Student> findByClassIdAndIsActiveOrderByRollNumber(Long classId, Boolean isActive);
 
   List<Student> findByDepartmentId(Long departmentId);
 
@@ -31,4 +37,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
   List<Student> findByClassIdAndNameContainingIgnoreCaseOrRollNumberContainingIgnoreCase(
       Long classId, String nameQuery, String rollQuery);
+
+  List<Student> findByClassIdAndIsActiveAndNameContainingIgnoreCaseOrClassIdAndIsActiveAndRollNumberContainingIgnoreCase(
+      Long classId1, Boolean isActive1, String nameQuery,
+      Long classId2, Boolean isActive2, String rollQuery);
 }

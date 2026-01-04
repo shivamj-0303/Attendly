@@ -1,18 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { getClassStudents, getTeacherTimetable, markAttendance } from '../services/api';
-import { AttendanceStatus } from '../types';
+import { AttendanceStatus, DAY_MAP, TimetableSlot } from '../types';
 
 import type { ClassItem, Student } from '../components';
-
-const DAY_MAP: Record<string, number> = {
-  FRIDAY: 4,
-  MONDAY: 0,
-  SATURDAY: 5,
-  THURSDAY: 3,
-  TUESDAY: 1,
-  WEDNESDAY: 2,
-};
 
 export const useTeacherTimetable = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -57,13 +48,13 @@ export const useTeacherTimetable = () => {
       const data = await getTeacherTimetable();
       const week: Record<number, ClassItem[]> = {};
 
-      // Initialize empty arrays
-      for (let i = 0; i < 6; i++) {
+      // Initialize empty arrays for all 7 days
+      for (let i = 0; i < 7; i++) {
         week[i] = [];
       }
 
       // Group by day
-      (data ?? []).forEach((slot: any) => {
+      (data ?? []).forEach((slot: TimetableSlot) => {
         const dayIndex = DAY_MAP[slot.dayOfWeek];
         if (dayIndex !== undefined) {
           week[dayIndex].push(mapSlotToClassItem(slot));
@@ -79,7 +70,7 @@ export const useTeacherTimetable = () => {
     } catch (err) {
       console.warn('Failed to load week timetable', err);
       const emptyWeek: Record<number, ClassItem[]> = {};
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 7; i++) {
         emptyWeek[i] = [];
       }
       setWeekClasses(emptyWeek);

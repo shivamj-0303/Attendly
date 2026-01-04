@@ -14,6 +14,8 @@ import TimetablePage from './pages/TimetablePage';
 import StaffPage from './pages/StaffPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
 import TeacherDashboardPage from './pages/TeacherDashboardPage';
+import StudentProfilePage from './pages/StudentProfilePage';
+import TeacherProfilePage from './pages/TeacherProfilePage';
 import Layout from './components/Layout';
 
 function App() {
@@ -33,10 +35,22 @@ function App() {
         element={isAuthenticated ? <StudentDashboardPage /> : <Navigate to="/login" />}
       />
 
+      {/* Student Profile */}
+      <Route
+        path="/student/profile"
+        element={isAuthenticated ? <StudentProfilePage /> : <Navigate to="/login" />}
+      />
+
       {/* Teacher Dashboard */}
       <Route
         path="/teacher/dashboard"
         element={isAuthenticated ? <TeacherDashboardPage /> : <Navigate to="/login" />}
+      />
+
+      {/* Teacher Profile */}
+      <Route
+        path="/teacher/profile"
+        element={isAuthenticated ? <TeacherProfilePage /> : <Navigate to="/login" />}
       />
 
       {/* Admin Panel Routes */}

@@ -31,6 +31,11 @@ export interface User {
   id: number;
   name: string;
   role: UserRole;
+  phone?: string;
+  rollNumber?: string;
+  registrationNumber?: string;
+  classId?: number;
+  departmentId?: number;
 }
 
 export interface AuthState {

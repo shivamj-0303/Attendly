@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 interface ModalHeaderProps {
   onClose: () => void;
@@ -7,6 +8,9 @@ interface ModalHeaderProps {
 }
 
 export const ModalHeader: React.FC<ModalHeaderProps> = ({ onClose, title }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <View style={styles.header}>
       <Text style={styles.title}>{title}</Text>
@@ -30,12 +34,15 @@ export const FullScreenModal: React.FC<FullScreenModalProps> = ({
   title,
   visible,
 }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <Modal animationType="slide" transparent={false} visible={visible}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.backButton}>
-            <Text style={styles.backText}>←</Text>
+            <Text style={styles.backText}>‹</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{title}</Text>
           <View style={styles.placeholder} />
@@ -46,24 +53,25 @@ export const FullScreenModal: React.FC<FullScreenModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   backButton: {
     height: 40,
     justifyContent: 'center',
     width: 40,
   },
   backText: {
-    color: '#10b981',
-    fontSize: 28,
-    fontWeight: '700',
+    color: theme.colors.text,
+    fontSize: 36,
+    fontWeight: '300',
+    lineHeight: 36,
   },
   closeIcon: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 24,
     fontWeight: '700',
   },
   container: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
@@ -71,8 +79,8 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderBottomColor: '#e5e7eb',
+    backgroundColor: theme.colors.surface,
+    borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
     height: 60,
@@ -80,7 +88,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerTitle: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -88,7 +96,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   title: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: '700',
   },

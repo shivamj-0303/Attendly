@@ -7,15 +7,9 @@ import type { TimetableSlot } from '@/types';
 import { LoadingSpinner } from '@/components';
 import { TimetableSlotCell } from '@/components/TimetableSlotCell';
 import { TimetableSlotModal } from '@/components/TimetableSlotModal';
+import type { Class } from '@/types/department';
 
-interface Class {
-  id: number;
-  name: string;
-  semester: number;
-  year: number;
-}
-
-const DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+const DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 const TIMES = [
   '08:00',
   '08:30',

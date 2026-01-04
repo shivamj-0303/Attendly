@@ -13,12 +13,14 @@ import {
 
 import { FormInput } from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useFormValidation } from '../hooks/useFormValidation';
 
 const PASSWORD_REGEX = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).*$/;
 
 export default function SignupScreen({ navigation }: any) {
   const { signup } = useAuth();
+  const { theme } = useTheme();
   const { errors, validateForm } = useFormValidation();
 
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -28,6 +30,9 @@ export default function SignupScreen({ navigation }: any) {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [registrationNumber, setRegistrationNumber] = useState('');
+  const [userType, setUserType] = useState<'student' | 'teacher'>('student');
+
+  const styles = getStyles(theme);
 
   const handleSignup = async () => {
     const isValid = validateForm({
@@ -87,9 +92,6 @@ export default function SignupScreen({ navigation }: any) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <View style={styles.iconContainer}>
-              <Text style={styles.iconText}>✓</Text>
-            </View>
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Join Attendly today</Text>
           </View>
@@ -179,10 +181,10 @@ export default function SignupScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   button: {
     alignItems: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.colors.primary,
     borderRadius: 8,
     marginTop: 8,
     padding: 16,
@@ -196,7 +198,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   container: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
@@ -210,7 +212,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   footerText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 14,
   },
   form: {
@@ -222,7 +224,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     alignItems: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.colors.primary,
     borderRadius: 40,
     height: 80,
     justifyContent: 'center',
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   link: {
-    color: '#2563eb',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -243,11 +245,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   subtitle: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 16,
   },
   title: {
-    color: '#1f2937',
+    color: theme.colors.text,
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,

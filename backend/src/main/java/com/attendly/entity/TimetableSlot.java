@@ -39,7 +39,7 @@ public class TimetableSlot {
   @Column(length = 100)
   private String teacherName;
 
-  // Day of week: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
+  // Day of week: SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
   @NotBlank(message = "Day of week is required")
   @Column(nullable = false, length = 20)
   private String dayOfWeek;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 export interface ClassItem {
   classId: number;
@@ -26,6 +27,9 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   onPress,
   showMarkButton,
 }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.timeColumn}>
@@ -54,14 +58,14 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   actionColumn: {
     alignItems: 'flex-end',
     width: 80,
   },
   card: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 10,
     elevation: 1,
     flexDirection: 'row',
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
   },
   classText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     marginTop: 4,
   },
   infoColumn: {
@@ -78,7 +82,7 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
   },
   markButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -89,23 +93,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   roomText: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
   subjectText: {
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
   timeSub: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 12,
   },
   timeColumn: {
     width: 80,
   },
   timeText: {
-    color: '#111827',
+    color: theme.colors.text,
     fontWeight: '700',
   },
 });

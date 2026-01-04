@@ -19,6 +19,7 @@ export type DayOfWeek =
   | 'SUNDAY';
 
 export const DAYS_OF_WEEK: readonly string[] = [
+  'Sunday',
   'Monday',
   'Tuesday',
   'Wednesday',
@@ -28,11 +29,29 @@ export const DAYS_OF_WEEK: readonly string[] = [
 ] as const;
 
 export const DAY_MAP: Record<DayOfWeek, number> = {
-  FRIDAY: 4,
-  MONDAY: 0,
-  SATURDAY: 5,
-  SUNDAY: 6,
-  THURSDAY: 3,
-  TUESDAY: 1,
-  WEDNESDAY: 2,
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
 } as const;
+
+// Base user interface
+export interface BaseUser {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  isActive: boolean;
+  firstLogin?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Select option for dropdowns
+export interface SelectOption {
+  value: string | number;
+  label: string;
+}

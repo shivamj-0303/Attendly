@@ -23,14 +23,16 @@ import {
 } from '../components';
 import type { StudentClassItem } from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useStudentTimetable } from '../hooks/useStudentTimetable';
 import { ReportScreen } from './ReportScreen';
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function StudentScreen() {
   const navigation = useNavigation<any>();
   const { logout, user } = useAuth();
+  const { theme } = useTheme();
   const {
     handleRefresh,
     isRefreshing,
@@ -46,6 +48,8 @@ export default function StudentScreen() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<StudentClassItem | null>(null);
   const [slotDetailsOpen, setSlotDetailsOpen] = useState(false);
+
+  const styles = getStyles(theme);
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -64,13 +68,13 @@ export default function StudentScreen() {
   const getStatusColor = (status: string): string => {
     switch (status) {
       case 'present':
-        return '#10b981';
+        return theme.colors.primary;
       case 'absent':
-        return '#ef4444';
+        return theme.colors.error;
       case 'leave':
         return '#f59e0b';
       default:
-        return '#9ca3af';
+        return theme.colors.textSecondary;
     }
   };
 
@@ -239,10 +243,38 @@ export default function StudentScreen() {
               <Text style={styles.detailValue}>{user?.id ?? 'N/A'}</Text>
             </View>
 
+            {user?.rollNumber && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Roll Number:</Text>
+                <Text style={styles.detailValue}>{user.rollNumber}</Text>
+              </View>
+            )}
+
+            {user?.registrationNumber && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Reg. Number:</Text>
+                <Text style={styles.detailValue}>{user.registrationNumber}</Text>
+              </View>
+            )}
+
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Mail:</Text>
+              <Text style={styles.detailLabel}>Email:</Text>
               <Text style={styles.detailValue}>{user?.email ?? 'N/A'}</Text>
             </View>
+
+            {user?.phone && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Phone:</Text>
+                <Text style={styles.detailValue}>{user.phone}</Text>
+              </View>
+            )}
+
+            {user?.classId && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Class:</Text>
+                <Text style={styles.detailValue}>Class {user.classId}</Text>
+              </View>
+            )}
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Role:</Text>
@@ -252,7 +284,20 @@ export default function StudentScreen() {
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('PasswordReset')}
+              onPress={() => {
+                setProfileOpen(false);
+                navigation.navigate('Settings');
+              }}
+              style={styles.settingsButton}
+            >
+              <Text style={styles.buttonText}>Application Settings</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setProfileOpen(false);
+                navigation.navigate('PasswordReset');
+              }}
               style={styles.resetButton}
             >
               <Text style={styles.buttonText}>Reset Password</Text>
@@ -268,7 +313,7 @@ export default function StudentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   buttonContainer: {
     marginTop: 20,
   },
@@ -279,7 +324,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 10,
     marginTop: 16,
     paddingVertical: 14,
@@ -290,7 +335,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   container: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
@@ -298,19 +343,19 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   detailLabel: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
     width: 120,
   },
   detailRow: {
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
     paddingVertical: 12,
   },
   detailValue: {
-    color: '#111827',
+    color: theme.colors.text,
     flex: 1,
     fontSize: 16,
   },
@@ -330,12 +375,30 @@ const styles = StyleSheet.create({
   profileLargeCircle: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 60,
     height: 120,
     justifyContent: 'center',
     marginBottom: 24,
     width: 120,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+  },
+  deletePhotoButton: {
+    alignSelf: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  deletePhotoText: {
+    color: theme.colors.error,
+    fontSize: 14,
+    fontWeight: '600',
   },
   profileLargeText: {
     color: '#fff',
@@ -344,25 +407,32 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: theme.colors.primary,
     borderRadius: 10,
     marginBottom: 12,
     paddingVertical: 16,
   },
   sectionTitle: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 8,
   },
+  settingsButton: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 10,
+    marginBottom: 12,
+    paddingVertical: 16,
+  },
   signoutButton: {
     alignItems: 'center',
-    backgroundColor: '#ef4444',
+    backgroundColor: theme.colors.error,
     borderRadius: 10,
     paddingVertical: 16,
   },
   slotDetailLabel: {
-    color: '#6b7280',
+    color: theme.colors.textSecondary,
     fontSize: 14,
     fontWeight: '600',
     width: 100,
@@ -373,7 +443,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   slotDetailValue: {
-    color: '#111827',
+    color: theme.colors.text,
     flex: 1,
     fontSize: 16,
   },
@@ -381,14 +451,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   slotDetailsModal: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 20,
     maxWidth: 400,
     padding: 24,
     width: '100%',
   },
   slotDetailsTitle: {
-    color: '#111827',
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: '700',
   },

@@ -4,6 +4,15 @@ import { LogIn, Mail, Lock, User, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import type { AxiosError } from 'axios';
+
+interface LoginResponse {
+  token: string;
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export default function StudentLoginPage() {
   const navigate = useNavigate();
@@ -20,24 +29,27 @@ export default function StudentLoginPage() {
     setLoading(true);
 
     try {
-      const endpoint = userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
-      const response = await api.post(endpoint, { email, password });
-      
+      const endpoint =
+        userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
+      const response = await api.post<LoginResponse>(endpoint, { email, password });
+
       const { token, id, name, email: userEmail, role } = response.data;
-      
+
       // Store authentication data
       setAuth({ id, name, email: userEmail, phone: '', role }, token);
-      
+
       toast.success(`Welcome back, ${name}!`);
-      
+
       // Navigate to appropriate dashboard
       if (userType === 'student') {
-        navigate('/student/dashboard');
+        void navigate('/student/dashboard');
       } else {
-        navigate('/teacher/dashboard');
+        void navigate('/teacher/dashboard');
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      const errorMessage =
+        axiosError.response?.data?.message || 'Login failed. Please check your credentials.';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {

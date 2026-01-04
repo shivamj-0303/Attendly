@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import PasswordResetModal from '@/components/PasswordResetModal';
+import type { AxiosError } from 'axios';
 
 interface TeacherProfile {
   id: number;
@@ -23,19 +24,20 @@ export default function TeacherProfilePage() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
+    void fetchProfile();
   }, []);
 
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
       // Get current user profile
-      const response = await api.get('/teacher/profile');
+      const response = await api.get<TeacherProfile>('/teacher/profile');
       setProfile(response.data);
       setEditedProfile(response.data);
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
       console.error('Failed to fetch profile:', error);
-      alert(error.response?.data?.message || 'Failed to load profile');
+      alert(axiosError.response?.data?.message || 'Failed to load profile');
     } finally {
       setIsLoading(false);
     }
@@ -54,9 +56,10 @@ export default function TeacherProfilePage() {
       await fetchProfile();
       setIsEditing(false);
       alert('Profile updated successfully!');
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
       console.error('Failed to update profile:', error);
-      alert(error.response?.data?.message || 'Failed to update profile');
+      alert(axiosError.response?.data?.message || 'Failed to update profile');
     } finally {
       setIsSaving(false);
     }
@@ -166,9 +169,7 @@ export default function TeacherProfilePage() {
                 {/* Edit Mode */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Phone Number
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700">Phone Number</label>
                     <input
                       type="tel"
                       value={editedProfile.phone || ''}
@@ -182,8 +183,8 @@ export default function TeacherProfilePage() {
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-800">
-                      <strong>Note:</strong> Some fields like name, email, and department can
-                      only be updated by your administrator.
+                      <strong>Note:</strong> Some fields like name, email, and department can only
+                      be updated by your administrator.
                     </p>
                   </div>
                 </div>

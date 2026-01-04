@@ -132,8 +132,8 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
             <div className="flex-1">
               <p className="text-sm text-blue-800 font-medium">Auto-Generated Password</p>
               <p className="text-xs text-blue-700 mt-1">
-                A secure temporary password will be automatically generated and sent to the student's email. 
-                The student will be required to change it on first login.
+                A secure temporary password will be automatically generated and sent to the
+                student&apos;s email. The student will be required to change it on first login.
               </p>
             </div>
           </div>

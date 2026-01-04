@@ -31,13 +31,13 @@ export default function ProfileDropdown() {
     logout();
     toast.success('Logged out successfully');
     setIsOpen(false);
-    navigate('/login');
+    void navigate('/login');
   };
 
   const handleViewProfile = () => {
     setIsOpen(false);
     const profilePath = user?.role === 'STUDENT' ? '/student/profile' : '/teacher/profile';
-    navigate(profilePath);
+    void navigate(profilePath);
   };
 
   return (

@@ -3,6 +3,7 @@ import { X, Mail, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components';
 import api from '@/lib/api';
+import type { AxiosError } from 'axios';
 
 interface PasswordResetModalProps {
   isOpen: boolean;
@@ -38,8 +39,9 @@ export default function PasswordResetModal({ isOpen, onClose }: PasswordResetMod
       });
       setStep('reset');
       toast.success('OTP sent to your email address');
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to send OTP';
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const errorMessage = axiosError.response?.data?.message || 'Failed to send OTP';
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -77,8 +79,9 @@ export default function PasswordResetModal({ isOpen, onClose }: PasswordResetMod
       });
       toast.success('Password reset successfully!');
       handleClose();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to reset password';
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const errorMessage = axiosError.response?.data?.message || 'Failed to reset password';
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -116,9 +119,7 @@ export default function PasswordResetModal({ isOpen, onClose }: PasswordResetMod
             <div className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  step === 'email'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-green-100 text-green-600'
+                  step === 'email' ? 'bg-blue-600 text-white' : 'bg-green-100 text-green-600'
                 }`}
               >
                 {step === 'email' ? '1' : '✓'}
@@ -126,9 +127,7 @@ export default function PasswordResetModal({ isOpen, onClose }: PasswordResetMod
               <div className={`w-12 h-1 ${step === 'reset' ? 'bg-blue-600' : 'bg-gray-200'}`} />
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  step === 'reset'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
+                  step === 'reset' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                 }`}
               >
                 2
@@ -145,9 +144,7 @@ export default function PasswordResetModal({ isOpen, onClose }: PasswordResetMod
 
               {/* User Type Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  I am a:
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">I am a:</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -193,12 +190,7 @@ export default function PasswordResetModal({ isOpen, onClose }: PasswordResetMod
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full"
-                disabled={loading}
-              >
+              <Button type="submit" variant="primary" className="w-full" disabled={loading}>
                 {loading ? 'Sending...' : 'Send OTP'}
               </Button>
             </form>
@@ -208,7 +200,8 @@ export default function PasswordResetModal({ isOpen, onClose }: PasswordResetMod
           {step === 'reset' && (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <p className="text-sm text-gray-600 mb-4">
-                We've sent a 6-digit code to {email}. Enter it below along with your new password.
+                We&apos;ve sent a 6-digit code to {email}. Enter it below along with your new
+                password.
               </p>
 
               <div>
@@ -273,12 +266,7 @@ export default function PasswordResetModal({ isOpen, onClose }: PasswordResetMod
                 >
                   Back
                 </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="flex-1"
-                  disabled={loading}
-                >
+                <Button type="submit" variant="primary" className="flex-1" disabled={loading}>
                   {loading ? 'Resetting...' : 'Reset Password'}
                 </Button>
               </div>

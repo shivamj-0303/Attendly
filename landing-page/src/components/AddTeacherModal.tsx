@@ -112,8 +112,8 @@ export function AddTeacherModal({ departmentId, isOpen, onClose }: AddTeacherMod
             <div className="flex-1">
               <p className="text-sm text-blue-800 font-medium">Auto-Generated Password</p>
               <p className="text-xs text-blue-700 mt-1">
-                A secure temporary password will be automatically generated and sent to the teacher's email. 
-                The teacher will be required to change it on first login.
+                A secure temporary password will be automatically generated and sent to the
+                teacher&apos;s email. The teacher will be required to change it on first login.
               </p>
             </div>
           </div>

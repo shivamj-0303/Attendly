@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Calendar, User } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { AttendanceList, Button, ClassCard, DayTabs, LoadingSpinner, Modal, ProfileDropdown } from '@/components';
+import {
+  AttendanceList,
+  Button,
+  ClassCard,
+  DayTabs,
+  LoadingSpinner,
+  Modal,
+  ProfileDropdown,
+} from '@/components';
 import api from '@/lib/api';
 import type { AttendanceStatus, DayOfWeek, Student, TabType, TimetableSlot } from '@/types';
 import { DAY_MAP } from '@/types/common';

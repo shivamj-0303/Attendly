@@ -21,4 +21,3 @@ export { TeacherDropdown } from './TeacherDropdown';
 export { TeacherTable } from './TeacherTable';
 export { TimetableSlotCell } from './TimetableSlotCell';
 export { TimetableSlotModal } from './TimetableSlotModal';
-

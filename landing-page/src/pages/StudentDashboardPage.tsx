@@ -18,7 +18,7 @@ interface ClassSlotWithStatus extends TimetableSlot {
   status?: AttendanceStatus;
 }
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function StudentDashboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>('today');

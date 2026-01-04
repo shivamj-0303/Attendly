@@ -6,7 +6,7 @@ export interface Department {
   description?: string;
   headOfDepartment?: string;
   isActive: boolean;
-  adminId: number;
+  adminId?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -15,13 +15,14 @@ export interface Class {
   id: number;
   name: string;
   year: number;
-  section: string;
+  semester: number;
+  section?: string;
   departmentId: number;
   departmentName?: string;
   capacity?: number;
   currentStrength?: number;
   isActive: boolean;
-  adminId: number;
+  adminId?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -36,7 +37,8 @@ export interface CreateDepartmentRequest {
 export interface CreateClassRequest {
   name: string;
   year: number;
-  section: string;
+  semester: number;
+  section?: string;
   departmentId: number;
   capacity?: number;
 }

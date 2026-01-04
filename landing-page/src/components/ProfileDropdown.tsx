@@ -1,19 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut, Lock, Settings, ChevronDown } from 'lucide-react';
+import { User, LogOut, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
-import PasswordResetModal from './PasswordResetModal';
 
-interface ProfileDropdownProps {
-  onResetPassword?: () => void;
-}
-
-export default function ProfileDropdown({ onResetPassword }: ProfileDropdownProps) {
+export default function ProfileDropdown() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -40,18 +34,10 @@ export default function ProfileDropdown({ onResetPassword }: ProfileDropdownProp
     navigate('/login');
   };
 
-  const handleResetPassword = () => {
+  const handleViewProfile = () => {
     setIsOpen(false);
-    if (onResetPassword) {
-      onResetPassword();
-    } else {
-      setShowResetModal(true);
-    }
-  };
-
-  const handleSettings = () => {
-    setIsOpen(false);
-    toast('Application settings coming soon!');
+    const profilePath = user?.role === 'STUDENT' ? '/student/profile' : '/teacher/profile';
+    navigate(profilePath);
   };
 
   return (
@@ -86,19 +72,11 @@ export default function ProfileDropdown({ onResetPassword }: ProfileDropdownProp
 
           {/* Menu Items */}
           <button
-            onClick={handleResetPassword}
+            onClick={handleViewProfile}
             className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
           >
-            <Lock className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Reset Password</span>
-          </button>
-
-          <button
-            onClick={handleSettings}
-            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
-          >
-            <Settings className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Application Settings</span>
+            <User className="w-4 h-4 text-gray-600" />
+            <span className="text-sm text-gray-700">View Profile</span>
           </button>
 
           <div className="border-t border-gray-100 mt-2 pt-2">
@@ -112,12 +90,6 @@ export default function ProfileDropdown({ onResetPassword }: ProfileDropdownProp
           </div>
         </div>
       )}
-
-      {/* Password Reset Modal */}
-      <PasswordResetModal 
-        isOpen={showResetModal} 
-        onClose={() => setShowResetModal(false)} 
-      />
     </div>
   );
 }

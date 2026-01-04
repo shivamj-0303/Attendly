@@ -3,26 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import PasswordResetModal from '@/components/PasswordResetModal';
 
-interface StudentProfile {
+interface TeacherProfile {
   id: number;
   name: string;
   email: string;
   phone?: string;
-  rollNumber: string;
-  registrationNumber?: string;
-  phoneVerified: boolean;
   firstLogin: boolean;
-  classId: number;
   departmentId: number;
+  isActive: boolean;
 }
 
-export default function StudentProfilePage() {
+export default function TeacherProfilePage() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [profile, setProfile] = useState<TeacherProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [editedProfile, setEditedProfile] = useState<Partial<StudentProfile>>({});
+  const [editedProfile, setEditedProfile] = useState<Partial<TeacherProfile>>({});
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   useEffect(() => {
@@ -32,7 +29,8 @@ export default function StudentProfilePage() {
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/student/profile');
+      // Get current user profile
+      const response = await api.get('/teacher/profile');
       setProfile(response.data);
       setEditedProfile(response.data);
     } catch (error: any) {
@@ -47,11 +45,12 @@ export default function StudentProfilePage() {
     try {
       setIsSaving(true);
 
+      // Update profile (limited fields for teachers)
       const updateData = {
         phone: editedProfile.phone,
       };
 
-      await api.put(`/student/profile`, updateData);
+      await api.put(`/teacher/profile`, updateData);
       await fetchProfile();
       setIsEditing(false);
       alert('Profile updated successfully!');
@@ -88,7 +87,7 @@ export default function StudentProfilePage() {
             onClick={() => navigate(-1)}
             className="text-blue-600 hover:text-blue-700 font-medium mb-4"
           >
-            ‹ Back
+            ‹
           </button>
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
           <p className="text-gray-600 mt-2">View and manage your profile information</p>
@@ -117,23 +116,14 @@ export default function StudentProfilePage() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Student ID</label>
+                    <label className="block text-sm font-medium text-gray-500">Employee ID</label>
                     <p className="mt-1 text-lg text-gray-900">{profile.id}</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Roll Number</label>
-                    <p className="mt-1 text-lg text-gray-900">{profile.rollNumber}</p>
+                    <label className="block text-sm font-medium text-gray-500">Department ID</label>
+                    <p className="mt-1 text-lg text-gray-900">{profile.departmentId}</p>
                   </div>
-
-                  {profile.registrationNumber && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">
-                        Registration Number
-                      </label>
-                      <p className="mt-1 text-lg text-gray-900">{profile.registrationNumber}</p>
-                    </div>
-                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Phone</label>
@@ -141,18 +131,16 @@ export default function StudentProfilePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">
-                      Phone Verified
-                    </label>
+                    <label className="block text-sm font-medium text-gray-500">Status</label>
                     <p className="mt-1">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          profile.phoneVerified
+                          profile.isActive
                             ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
                         }`}
                       >
-                        {profile.phoneVerified ? 'Verified' : 'Not Verified'}
+                        {profile.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </p>
                   </div>
@@ -166,7 +154,7 @@ export default function StudentProfilePage() {
                     Edit Profile
                   </button>
                   <button
-                    onClick={() => navigate('/student/dashboard')}
+                    onClick={() => navigate('/teacher/dashboard')}
                     className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 font-medium"
                   >
                     Back to Dashboard
@@ -194,7 +182,7 @@ export default function StudentProfilePage() {
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-800">
-                      <strong>Note:</strong> Some fields like name, email, and roll number can
+                      <strong>Note:</strong> Some fields like name, email, and department can
                       only be updated by your administrator.
                     </p>
                   </div>

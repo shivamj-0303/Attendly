@@ -26,7 +26,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTeacherTimetable } from '../hooks/useTeacherTimetable';
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function TeacherScreen() {
   const navigation = useNavigation<any>();
@@ -242,7 +242,7 @@ export default function TeacherScreen() {
               onPress={() => setAttendanceMarkingOpen(false)}
               style={styles.backButton}
             >
-              <Text style={styles.backButtonText}>←</Text>
+              <Text style={styles.backButtonText}>‹</Text>
             </TouchableOpacity>
             <Text style={styles.attendanceHeaderTitle}>{selectedClass?.className}</Text>
             <TouchableOpacity onPress={() => setMenuOpen(true)} style={styles.menuButton}>
@@ -337,9 +337,23 @@ export default function TeacherScreen() {
             </View>
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Mail:</Text>
+              <Text style={styles.detailLabel}>Email:</Text>
               <Text style={styles.detailValue}>{user?.email ?? 'N/A'}</Text>
             </View>
+
+            {user?.phone && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Phone:</Text>
+                <Text style={styles.detailValue}>{user.phone}</Text>
+              </View>
+            )}
+
+            {user?.departmentId && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Department:</Text>
+                <Text style={styles.detailValue}>Dept. {user.departmentId}</Text>
+              </View>
+            )}
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Role:</Text>
@@ -348,6 +362,16 @@ export default function TeacherScreen() {
           </View>
 
           <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                setProfileOpen(false);
+                navigation.navigate('Settings');
+              }}
+              style={styles.settingsButton}
+            >
+              <Text style={styles.buttonText}>Application Settings</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => {
                 setProfileOpen(false);
@@ -397,9 +421,10 @@ const getStyles = (theme: any) => StyleSheet.create({
     width: 40,
   },
   backButtonText: {
-    color: theme.colors.primary,
-    fontSize: 28,
-    fontWeight: '700',
+    color: theme.colors.text,
+    fontSize: 36,
+    fontWeight: '300',
+    lineHeight: 36,
   },
   bottomActions: {
     borderTopColor: theme.colors.border,
@@ -577,12 +602,39 @@ const getStyles = (theme: any) => StyleSheet.create({
     height: 120,
     justifyContent: 'center',
     marginBottom: 24,
+    overflow: 'hidden',
     width: 120,
   },
   profileLargeText: {
     color: '#fff',
     fontSize: 48,
     fontWeight: '700',
+  },
+  profileImage: {
+    borderRadius: 60,
+    height: 120,
+    width: 120,
+  },
+  deletePhotoButton: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: theme.colors.error,
+    borderRadius: 10,
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  deletePhotoText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  settingsButton: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 10,
+    marginBottom: 12,
+    paddingVertical: 16,
   },
   resetButton: {
     alignItems: 'center',

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   ScrollView,
   StyleSheet,
   Switch,
@@ -12,6 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, type ThemeMode } from '../context/ThemeContext';
+import { Header } from '../components/Header';
 
 interface AppSettings {
   notifyAttendanceMarked: boolean;
@@ -37,6 +39,15 @@ export default function SettingsScreen({ navigation }: any) {
   useEffect(() => {
     loadSettings();
   }, []);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      navigation.goBack();
+      return true; // Prevent default behavior (exit app)
+    });
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const loadSettings = async () => {
     try {
@@ -96,20 +107,17 @@ export default function SettingsScreen({ navigation }: any) {
   const styles = getStyles(theme);
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Application Settings</Text>
-          <Text style={styles.subtitle}>Customize your app experience</Text>
-        </View>
-
-        {/* Appearance Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
+    <View style={styles.container}>
+      <Header 
+        title="Application Settings"
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+      />
+      <ScrollView style={styles.scrollContent}>
+        <View style={styles.content}>
+          {/* Appearance Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Appearance</Text>
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>Theme</Text>
@@ -230,30 +238,22 @@ export default function SettingsScreen({ navigation }: any) {
             Notification settings require app permissions
           </Text>
         </View>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const getStyles = (theme: any) => StyleSheet.create({
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-  },
-  backText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
   container: {
     backgroundColor: theme.colors.background,
     flex: 1,
   },
+  scrollContent: {
+    flex: 1,
+  },
   content: {
     padding: 20,
-  },
-  header: {
-    marginBottom: 24,
   },
   infoSection: {
     backgroundColor: theme.mode === 'light' ? '#eff6ff' : theme.colors.surface,
@@ -320,11 +320,6 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  subtitle: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-    marginTop: 4,
-  },
   themeOption: {
     backgroundColor: theme.colors.border,
     borderRadius: 8,
@@ -347,10 +342,5 @@ const getStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     width: 160,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: 28,
-    fontWeight: '700',
   },
 });

@@ -27,7 +27,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useStudentTimetable } from '../hooks/useStudentTimetable';
 import { ReportScreen } from './ReportScreen';
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function StudentScreen() {
   const navigation = useNavigation<any>();
@@ -243,10 +243,38 @@ export default function StudentScreen() {
               <Text style={styles.detailValue}>{user?.id ?? 'N/A'}</Text>
             </View>
 
+            {user?.rollNumber && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Roll Number:</Text>
+                <Text style={styles.detailValue}>{user.rollNumber}</Text>
+              </View>
+            )}
+
+            {user?.registrationNumber && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Reg. Number:</Text>
+                <Text style={styles.detailValue}>{user.registrationNumber}</Text>
+              </View>
+            )}
+
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Mail:</Text>
+              <Text style={styles.detailLabel}>Email:</Text>
               <Text style={styles.detailValue}>{user?.email ?? 'N/A'}</Text>
             </View>
+
+            {user?.phone && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Phone:</Text>
+                <Text style={styles.detailValue}>{user.phone}</Text>
+              </View>
+            )}
+
+            {user?.classId && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Class:</Text>
+                <Text style={styles.detailValue}>Class {user.classId}</Text>
+              </View>
+            )}
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Role:</Text>
@@ -353,6 +381,24 @@ const getStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
     width: 120,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+  },
+  deletePhotoButton: {
+    alignSelf: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  deletePhotoText: {
+    color: theme.colors.error,
+    fontSize: 14,
+    fontWeight: '600',
   },
   profileLargeText: {
     color: '#fff',

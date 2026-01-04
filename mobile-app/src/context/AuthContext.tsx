@@ -7,6 +7,11 @@ interface User {
   name: string;
   email: string;
   role: string;
+  phone?: string;
+  rollNumber?: string;
+  registrationNumber?: string;
+  classId?: number;
+  departmentId?: number;
 }
 
 interface AuthContextType {

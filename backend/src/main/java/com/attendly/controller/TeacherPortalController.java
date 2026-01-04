@@ -38,8 +38,10 @@ public class TeacherPortalController {
     if (date != null) {
       DayOfWeek dayOfWeekEnum = date.getDayOfWeek();
       String dayOfWeek = dayOfWeekEnum.toString(); // Convert to String: MONDAY, TUESDAY, etc.
+      System.out.println("=== DEBUG: Fetching timetable for date: " + date + ", dayOfWeek: " + dayOfWeek + " ===");
       List<TimetableSlot> slots =
           timetableSlotRepository.findByTeacherIdAndDayOfWeekAndIsActiveTrue(teacherId, dayOfWeek);
+      System.out.println("=== DEBUG: Found " + slots.size() + " slots for " + dayOfWeek + " ===");
 
       List<Map<String, Object>> response =
           slots.stream()
@@ -64,6 +66,10 @@ public class TeacherPortalController {
       return ResponseEntity.ok(response);
     } else {
       List<TimetableSlot> slots = timetableSlotRepository.findByTeacherIdAndIsActiveTrue(teacherId);
+      System.out.println("=== DEBUG: Fetching full week timetable, found " + slots.size() + " total slots ===");
+      for (TimetableSlot slot : slots) {
+        System.out.println("  - Slot ID: " + slot.getId() + ", Day: " + slot.getDayOfWeek() + ", Subject: " + slot.getSubject());
+      }
 
       List<Map<String, Object>> response =
           slots.stream()
@@ -74,7 +80,7 @@ public class TeacherPortalController {
                     map.put("classId", slot.getClassId());
                     map.put("className", "Class " + slot.getClassId());
                     map.put("subject", slot.getSubject());
-                    map.put("dayOfWeek", slot.getDayOfWeek().toString());
+                    map.put("dayOfWeek", slot.getDayOfWeek()); // dayOfWeek is already a String
                     map.put("startTime", slot.getStartTime().toString());
                     map.put("endTime", slot.getEndTime().toString());
                     map.put("room", slot.getRoom());

@@ -42,7 +42,7 @@ export const FullScreenModal: React.FC<FullScreenModalProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.backButton}>
-            <Text style={styles.backText}>←</Text>
+            <Text style={styles.backText}>‹</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{title}</Text>
           <View style={styles.placeholder} />
@@ -60,9 +60,10 @@ const getStyles = (theme: any) => StyleSheet.create({
     width: 40,
   },
   backText: {
-    color: theme.colors.primary,
-    fontSize: 28,
-    fontWeight: '700',
+    color: theme.colors.text,
+    fontSize: 36,
+    fontWeight: '300',
+    lineHeight: 36,
   },
   closeIcon: {
     color: theme.colors.textSecondary,

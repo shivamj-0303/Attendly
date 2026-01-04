@@ -3,23 +3,8 @@ import { Building2, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
-
-interface Department {
-  id: number;
-  name: string;
-  code: string;
-  description: string;
-  isActive: boolean;
-}
-
-interface Teacher {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  departmentId: number;
-  isActive: boolean;
-}
+import type { Department } from '@/types/department';
+import type { Teacher } from '@/types/teacher';
 
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);

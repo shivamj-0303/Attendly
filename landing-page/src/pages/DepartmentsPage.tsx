@@ -5,18 +5,8 @@ import { Search, Plus } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import type { AxiosError } from 'axios';
-
-interface Department {
-  id: number;
-  name: string;
-  code: string;
-  description: string;
-  isActive: boolean;
-}
-
-interface ErrorResponse {
-  message?: string;
-}
+import type { Department } from '@/types/department';
+import type { ApiError } from '@/types/api';
 
 export default function DepartmentsPage() {
   const navigate = useNavigate();
@@ -133,7 +123,7 @@ function AddDepartmentModal({
       toast.success('Department added successfully!');
       onSuccess();
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
+    onError: (error: AxiosError<ApiError>) => {
       toast.error(error.response?.data?.message || 'Failed to add department');
     },
   });

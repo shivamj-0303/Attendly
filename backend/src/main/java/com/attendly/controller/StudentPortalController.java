@@ -44,9 +44,11 @@ public class StudentPortalController {
       // Get timetable for specific day
       DayOfWeek dayOfWeek = date.getDayOfWeek();
       String dayName = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH).toUpperCase();
+      System.out.println("=== DEBUG: Fetching student timetable for date: " + date + ", dayName: " + dayName + " ===");
 
       List<TimetableSlotResponse> slots =
           timetableService.getStudentTimetableByDay(student.getClassId(), dayName);
+      System.out.println("=== DEBUG: Found " + slots.size() + " slots for " + dayName + " ===");
       return ResponseEntity.ok(slots);
     } else {
       // Get full week timetable

@@ -53,9 +53,6 @@ public class Student implements UserDetails {
   @Column(unique = true, length = 50)
   private String registrationNumber;
 
-  @Column(length = 500)
-  private String profilePhotoUrl;
-
   @Column(nullable = false)
   private Boolean phoneVerified = false;
 

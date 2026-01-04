@@ -4,22 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, Plus, Search } from 'lucide-react';
 import api from '@/lib/api';
 import { AddClassModal, ClassGrid } from '@/components';
-
-interface Class {
-  id: number;
-  isActive: boolean;
-  name: string;
-  semester: number;
-  year: number;
-}
-
-interface Department {
-  code: string;
-  description: string;
-  id: number;
-  isActive: boolean;
-  name: string;
-}
+import type { Department, Class } from '@/types/department';
 
 export default function ClassesPage() {
   const { id: departmentId } = useParams();

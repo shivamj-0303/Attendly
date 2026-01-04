@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import type { AttendanceStatus, DayOfWeek, Student, TabType, TimetableSlot } from '@/types';
 import { DAY_MAP } from '@/types/common';
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function TeacherDashboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>('today');

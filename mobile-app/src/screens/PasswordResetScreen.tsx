@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { FormInput } from '../components';
+import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
@@ -34,6 +36,15 @@ export default function PasswordResetScreen({ navigation }: any) {
   
   // Determine if user is authenticated (changing password) or not (forgot password)
   const isAuthenticated = !!user;
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      navigation.goBack();
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const handleRequestOTP = async () => {
     if (!email.trim()) {
@@ -269,53 +280,34 @@ export default function PasswordResetScreen({ navigation }: any) {
   );
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          {/* Top Back Button */}
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.topBackButton}
-          >
-            <Text style={styles.topBackText}>← Back</Text>
-          </TouchableOpacity>
-
-          <View style={styles.header}>
+    <View style={styles.container}>
+      <Header 
+        title="Password Reset"
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.content}>
             <View style={styles.iconContainer}>
               <Text style={styles.iconText}>🔐</Text>
             </View>
-            <Text style={styles.title}>Password Reset</Text>
+
+            {renderStepIndicator()}
+
+            {currentStep === 'email' && renderEmailStep()}
+            {currentStep === 'reset' && renderOTPStep()}
           </View>
-
-          {renderStepIndicator()}
-
-          {currentStep === 'email' && renderEmailStep()}
-          {currentStep === 'reset' && renderOTPStep()}
-
-          <TouchableOpacity
-            onPress={() => navigation.replace('Login')}
-            style={styles.backButton}
-          >
-            <Text style={styles.backText}>← Back to Login</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const getStyles = (theme: any) => StyleSheet.create({
-  backButton: {
-    marginTop: 20,
-  },
-  backText: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-    textAlign: 'center',
-  },
   button: {
     alignItems: 'center',
     backgroundColor: theme.colors.primary,
@@ -336,12 +328,11 @@ const getStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.background,
     flex: 1,
   },
+  keyboardView: {
+    flex: 1,
+  },
   content: {
     padding: 24,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 32,
   },
   iconContainer: {
     alignItems: 'center',
@@ -349,7 +340,8 @@ const getStyles = (theme: any) => StyleSheet.create({
     borderRadius: 40,
     height: 80,
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 32,
+    alignSelf: 'center',
     width: 80,
   },
   iconText: {
@@ -429,22 +421,6 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  topBackButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-  },
-  topBackText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
   },
   userTypeButton: {
     backgroundColor: theme.colors.card,

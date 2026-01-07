@@ -6,7 +6,7 @@ import { UserPlus } from 'lucide-react';
 import { FormInput, FormSection } from '@/components';
 import { authService } from '@/services/authService';
 import { useAuthStore } from '@/store/authStore';
-import type { ErrorResponse, SignupRequest } from '@/types';
+import type { SignupRequest } from '@/types';
 
 const EMAIL_PATTERN = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 const PASSWORD_PATTERN = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$/;
@@ -25,8 +25,9 @@ export default function SignupPage() {
 
   const signupMutation = useMutation({
     mutationFn: authService.signup,
-    onError: (error: ErrorResponse) => {
-      toast.error(error.message ?? 'Signup failed');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Signup failed';
+      toast.error(message);
     },
     onSuccess: (data) => {
       setAuth(

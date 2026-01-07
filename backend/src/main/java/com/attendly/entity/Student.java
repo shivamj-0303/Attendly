@@ -56,8 +56,7 @@ public class Student implements UserDetails {
   @Column(nullable = false)
   private Boolean phoneVerified = false;
 
-  @Column(nullable = false)
-  private Boolean firstLogin = true;
+  // Removed firstLogin: no longer required in DB or application
 
   @Column(nullable = false)
   private Long classId;

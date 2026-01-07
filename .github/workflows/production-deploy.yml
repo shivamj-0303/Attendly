@@ -3,6 +3,7 @@ name: Production Deployment
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,13 +14,64 @@ env:
   JAVA_VERSION: '17'
 
 jobs:
-  # Build and Deploy Backend
-  deploy-backend:
+  # ========================================
+  # PRE-DEPLOYMENT VALIDATION
+  # ========================================
+  validate-before-deploy:
+    name: Pre-Deployment Validation
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
       
-      - name: Set up JDK
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run Backend Tests
+        run: |
+          cd backend
+          mvn clean test
+        continue-on-error: false
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: landing-page/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd landing-page
+          npm ci
+
+      - name: Frontend Lint
+        run: |
+          cd landing-page
+          npm run lint
+        continue-on-error: false
+
+      - name: TypeScript Check
+        run: |
+          cd landing-page
+          npx tsc --noEmit
+        continue-on-error: false
+
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    needs: validate-before-deploy
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
@@ -30,18 +82,102 @@ jobs:
         run: |
           cd backend
           mvn clean package -DskipTests
+        continue-on-error: false
 
-      - name: Deploy to Render
+      - name: Upload Backend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar-production-${{ github.run_number }}
+          path: backend/target/*.jar
+          retention-days: 30
+
+      - name: Trigger Render Deployment
         run: |
+          echo "Triggering Render deployment..."
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          echo "Deployment triggered successfully"
 
-  # Build and Upload Mobile APK
-  build-and-upload-apk:
+      - name: Wait for Deployment
+        run: |
+          echo "Waiting 60 seconds for deployment to start..."
+          sleep 60
+
+      - name: Health Check
+        run: |
+          echo "Checking backend health..."
+          max_attempts=10
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts..."
+            
+            if curl -f -s "${{ secrets.VITE_API_BASE_URL }}/health" > /dev/null 2>&1; then
+              echo "Backend is healthy!"
+              exit 0
+            fi
+            
+            echo "Backend not ready yet, waiting 30 seconds..."
+            sleep 30
+            attempt=$((attempt + 1))
+          done
+          
+          echo "Backend health check failed after $max_attempts attempts"
+          exit 1
+
+  deploy-unified-app:
+    name: 🌐 Deploy Frontend
     runs-on: ubuntu-latest
+    needs: [deploy-backend, build-and-upload-apk]
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.url }}
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: landing-page/package-lock.json
+
+      - name: Install Dependencies
+        run: |
+          cd landing-page
+          npm ci
+
+      - name: Build Frontend
+        run: |
+          cd landing-page
+          npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+        continue-on-error: false
+
+      - name: Deploy to Vercel Production
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./landing-page
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+
+  build-and-upload-apk:
+    name: Build Mobile APK
+    runs-on: ubuntu-latest
+    needs: validate-before-deploy
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -54,7 +190,7 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies
+      - name: Install Dependencies
         working-directory: mobile-app
         run: npm ci
 
@@ -63,39 +199,46 @@ jobs:
         run: |
           echo "🔧 Building APK with API URL: ${{ secrets.VITE_API_BASE_URL }}"
           
-          # Map VITE_API_BASE_URL to EXPO_PUBLIC_API_URL (Metro bundler requirement)
           export EXPO_PUBLIC_API_URL="${{ secrets.VITE_API_BASE_URL }}"
           
-          # Build the APK
-          echo "🚀 Starting EAS build..."
-          eas build --platform android --profile production --local
+          echo "Starting EAS build..."
+          eas build --platform android --profile production --local --non-interactive
           
-          echo "✅ Build complete!"
+          echo "Build complete!"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        continue-on-error: false
 
-      - name: Find and Copy APK
+      - name: Find and Package APK
         run: |
-          # Find the latest built APK in mobile-app directory
-          APK_FILE=$(ls -t mobile-app/build-*.apk | head -1)
+          APK_FILE=$(ls -t mobile-app/build-*.apk 2>/dev/null | head -1)
+          
+          if [ -z "$APK_FILE" ]; then
+            echo "APK file not found!"
+            exit 1
+          fi
+          
           echo "Found APK: $APK_FILE"
           
-          # Create downloads directory
           mkdir -p landing-page/public/downloads/
-          
-          # Copy and rename APK
           cp "$APK_FILE" landing-page/public/downloads/attendly.apk
           
-          # Verify
           ls -lh landing-page/public/downloads/attendly.apk
+          echo "APK packaged successfully"
 
       - name: Get Version Info
         id: version
         run: |
-          # Get current date for version tag
           VERSION="v$(date +'%Y.%m.%d')-build.${{ github.run_number }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-apk-${{ steps.version.outputs.version }}
+          path: landing-page/public/downloads/attendly.apk
+          retention-days: 90
 
       - name: Create GitHub Release
         id: create_release
@@ -104,19 +247,19 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           name: Production Release ${{ steps.version.outputs.version }}
           body: |
-            ## 📱 Attendly Mobile App - Production Release
+            ## Attendly Mobile App - Production Release
             
-            **Built**: ${{ github.event.head_commit.message }}
-            **Commit**: ${{ github.sha }}
+            **Commit**: ${{ github.event.head_commit.message }}
+            **SHA**: ${{ github.sha }}
             **Date**: $(date +'%Y-%m-%d %H:%M:%S UTC')
             
-            ### 📥 Download
+            ### Download
             - **Android APK**: Download `attendly.apk` below
             
             ### 🔗 Backend API
             - Connected to: ${{ secrets.VITE_API_BASE_URL }}
             
-            ### ✅ Installation
+            ### Installation
             1. Download the APK file
             2. Enable "Install from Unknown Sources" on your Android device
             3. Install the APK
@@ -130,62 +273,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Latest Release Tag
-        run: |
-          # Delete existing 'latest' tag if it exists
-          git tag -d latest 2>/dev/null || true
-          git push origin :refs/tags/latest 2>/dev/null || true
-          
-          # Create new 'latest' tag
-          git tag latest
-          git push origin latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload APK as Artifact (Backup)
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-apk-${{ steps.version.outputs.version }}
-          path: landing-page/public/downloads/attendly.apk
-          retention-days: 90
-
-  # Deploy Unified App (Landing Page + Admin Panel)
-  deploy-unified-app:
-    runs-on: ubuntu-latest
-    needs: [build-and-upload-apk]
-    outputs:
-      deployment-url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Deploy Unified App to Vercel Production
-        id: deploy
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: ./landing-page
-          scope: ${{ secrets.VERCEL_ORG_ID }}
-        env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-
-  # Create Deployment Summary
   deployment-summary:
+    name: Deployment Summary
     runs-on: ubuntu-latest
-    needs: [deploy-backend, build-and-upload-apk, deploy-unified-app]
+    needs: [validate-before-deploy, deploy-backend, build-and-upload-apk, deploy-unified-app]
     if: always()
+    
     steps:
       - name: Create Deployment Summary
         uses: actions/github-script@v7
         with:
           script: |
+            const validationStatus = '${{ needs.validate-before-deploy.result }}';
             const backendStatus = '${{ needs.deploy-backend.result }}';
             const mobileStatus = '${{ needs.build-and-upload-apk.result }}';
             const appStatus = '${{ needs.deploy-unified-app.result }}';
             const appUrl = '${{ needs.deploy-unified-app.outputs.deployment-url }}';
-            const apkDownloadUrl = 'https://github.com/${{ github.repository }}/releases/latest/download/attendly.apk';
             
             const statusIcon = (status) => {
               if (status === 'success') return '✅';
@@ -194,64 +297,44 @@ jobs:
               return '⏳';
             };
             
-            const summary = `# 🚀 Production Deployment Complete
+            let summary = `# Production Deployment ${validationStatus === 'success' && backendStatus === 'success' && mobileStatus === 'success' && appStatus === 'success' ? 'Complete' : 'Status'}\n\n`;
             
-            ## Deployment Status
+            summary += `## Deployment Pipeline\n\n`;
+            summary += `| Stage | Status | Details |\n`;
+            summary += `|-------|--------|----------|\n`;
+            summary += `| Pre-Deploy Validation | ${statusIcon(validationStatus)} | Tests, Lint, TypeCheck |\n`;
+            summary += `| Backend API | ${statusIcon(backendStatus)} | ${{ secrets.VITE_API_BASE_URL }} |\n`;
+            summary += `| Mobile APK | ${statusIcon(mobileStatus)} | [Download](https://github.com/${{ github.repository }}/releases/latest) |\n`;
+            summary += `| Frontend | ${statusIcon(appStatus)} | ${appUrl || 'Pending'} |\n\n`;
             
-            | Component | Status | URL |
-            |-----------|--------|-----|
-            | Backend API | ${statusIcon(backendStatus)} | ${{ secrets.VITE_API_BASE_URL }} |
-            | Mobile APK | ${statusIcon(mobileStatus)} | [Download APK](${apkDownloadUrl}) |
-            | Unified Web App | ${statusIcon(appStatus)} | ${appUrl} |
-            
-            ## 📱 Mobile App
-            
-            - **APK Built**: ${statusIcon(mobileStatus)}
-            - **Direct Download**: [attendly.apk](${apkDownloadUrl})
-            - **GitHub Release**: [View Latest Release](https://github.com/${{ github.repository }}/releases/latest)
-            - **Available on Landing Page**: ${appUrl}
-            
-            ## 🌐 Live URLs
-            
-            1. **Landing Page**: ${appUrl} (Users can download APK here)
-            2. **Admin Panel**: ${appUrl}/admin (Admin login and dashboard)
-            3. **Backend API**: ${{ secrets.VITE_API_BASE_URL }}
-            4. **APK Download**: ${apkDownloadUrl}
-            
-            ## ✅ Post-Deployment Checks
-            
-            - [ ] Visit landing page and verify APK download works
-            - [ ] Click "Admin Panel" button and test login
-            - [ ] Download and test mobile APK on Android device
-            - [ ] Verify all services are connected
-            - [ ] Test mobile app login with backend
-            
-            ---
-            
-            *Deployed at ${new Date().toISOString()}*
-            *Commit: ${context.sha.substring(0, 7)}*
-            *APK built with VITE_API_BASE_URL from GitHub secrets*
-            `;
-            
-            // Create issue comment for main branch push
-            const commits = await github.rest.repos.listCommits({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              per_page: 1
-            });
-            
-            if (commits.data.length > 0) {
-              const commit = commits.data[0];
-              await github.rest.repos.createCommitComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                commit_sha: context.sha,
-                body: summary
-              });
+            if (validationStatus === 'failure') {
+              summary += `## Deployment Failed\n\n`;
+              summary += `Pre-deployment validation failed. Please check the logs and fix:\n`;
+              summary += `- Backend tests\n`;
+              summary += `- Frontend linting\n`;
+              summary += `- TypeScript type checking\n\n`;
+            } else if (backendStatus === 'failure' || mobileStatus === 'failure' || appStatus === 'failure') {
+              summary += `## Partial Deployment\n\n`;
+              summary += `Some components failed to deploy. Please check the logs.\n\n`;
+            } else {
+              summary += `## Deployment Successful\n\n`;
+              summary += `All components deployed successfully!\n\n`;
+              summary += `### 🌐 Live URLs\n`;
+              summary += `- **Landing Page**: ${appUrl}\n`;
+              summary += `- **Admin Panel**: ${appUrl}/login\n`;
+              summary += `- **Backend API**: ${{ secrets.VITE_API_BASE_URL }}\n`;
+              summary += `- **APK Download**: https://github.com/${{ github.repository }}/releases/latest\n\n`;
             }
             
-            // Also output to workflow summary
+            summary += `---\n`;
+            summary += `*Deployed at ${new Date().toISOString()}*\n`;
+            summary += `*Commit: [\`${context.sha.substring(0, 7)}\`](https://github.com/${{ github.repository }}/commit/${context.sha})*`;
+            
             await core.summary
               .addRaw(summary)
               .write();
+            
+            // Fail if critical steps failed
+            if (validationStatus === 'failure' || backendStatus === 'failure') {
+              core.setFailed('Deployment failed at critical stage');
+            }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import type { ErrorResponse, Teacher, TimetableSlot } from '@/types';
+import type { Teacher, TimetableSlot } from '@/types';
 import { Button, Modal, TeacherDropdown } from '@/components';
 
 interface SlotFormData {
@@ -88,8 +88,9 @@ export const TimetableSlotModal = ({
         teacherId: data.teacherId,
       });
     },
-    onError: (error: { response?: { data?: ErrorResponse } }) => {
-      toast.error(error.response?.data?.message || 'Failed to create slot');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to create slot';
+      toast.error(message);
     },
     onSuccess: () => {
       toast.success('Timetable slot created successfully!');
@@ -106,8 +107,9 @@ export const TimetableSlotModal = ({
         teacherId: data.teacherId,
       });
     },
-    onError: (error: { response?: { data?: ErrorResponse } }) => {
-      toast.error(error.response?.data?.message || 'Failed to update slot');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to update slot';
+      toast.error(message);
     },
     onSuccess: () => {
       toast.success('Timetable slot updated successfully!');
@@ -120,8 +122,9 @@ export const TimetableSlotModal = ({
     mutationFn: async () => {
       await api.delete(`/admin/timetable/${selectedSlot?.id}`);
     },
-    onError: (error: { response?: { data?: ErrorResponse } }) => {
-      toast.error(error.response?.data?.message || 'Failed to delete slot');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to delete slot';
+      toast.error(message);
     },
     onSuccess: () => {
       toast.success('Timetable slot deleted successfully!');

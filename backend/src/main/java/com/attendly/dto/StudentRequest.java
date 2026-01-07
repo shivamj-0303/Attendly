@@ -28,7 +28,7 @@ public class StudentRequest {
 
   private String phone;
 
-  @NotBlank(message = "Roll number is required")
+  // Roll number is optional - will be auto-generated if not provided
   private String rollNumber;
 
   private String registrationNumber;

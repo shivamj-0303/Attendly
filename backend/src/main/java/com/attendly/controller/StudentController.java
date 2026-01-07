@@ -70,4 +70,12 @@ public class StudentController {
     List<Student> students = studentService.searchStudents(q, classId);
     return ResponseEntity.ok(students);
   }
+
+  @PostMapping("/bulk")
+  public ResponseEntity<List<Student>> importStudentsBulk(
+      @Valid @RequestBody com.attendly.dto.BulkStudentImportRequest request,
+      @AuthenticationPrincipal UserPrincipal userPrincipal) {
+    List<Student> created = studentService.importStudentsBulk(request, userPrincipal.getId());
+    return ResponseEntity.status(HttpStatus.CREATED).body(created);
+  }
 }

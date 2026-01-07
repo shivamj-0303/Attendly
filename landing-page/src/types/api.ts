@@ -3,11 +3,14 @@ export interface ApiError {
   errors?: Record<string, string[]>;
   message: string;
   status?: number;
+  userMessage?: string;
 }
 
 export interface ErrorResponse {
   message: string;
   status?: number;
+  userMessage?: string;
+  error?: string;
 }
 
 export interface PaginatedResponse<T> {

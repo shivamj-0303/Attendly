@@ -46,8 +46,7 @@ public class Teacher implements UserDetails {
   @Column(length = 20)
   private String phone;
 
-  @Column(nullable = false)
-  private Boolean firstLogin = true;
+  // Removed firstLogin: no longer required in DB or application
 
   @Column(nullable = false)
   private Long departmentId;

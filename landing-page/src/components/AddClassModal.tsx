@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { Button, Modal } from '@/components';
-import type { ErrorResponse } from '@/types';
 
 interface Class {
   departmentId: number;
@@ -44,8 +43,9 @@ export function AddClassModal({ departmentId, isOpen, onClose }: AddClassModalPr
       const res = await api.post<Class>('/admin/classes', data);
       return res.data;
     },
-    onError: (error: ErrorResponse) => {
-      toast.error(error.message ?? 'Failed to add class');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to add class';
+      toast.error(message);
     },
     onSuccess: () => {
       toast.success('Class added successfully!');

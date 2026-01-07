@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { Button, Modal } from '@/components';
-import type { ErrorResponse, Student } from '@/types';
+import type { Student } from '@/types';
 
 interface AddStudentFormData {
   classId: number;
@@ -25,6 +25,7 @@ interface AddStudentModalProps {
 
 export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddStudentModalProps) {
   const queryClient = useQueryClient();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [formData, setFormData] = useState<AddStudentFormData>({
     classId: Number(classId),
@@ -42,19 +43,62 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
       const res = await api.post<Student>('/admin/students', data);
       return res.data;
     },
-    onError: (error: ErrorResponse) => {
-      toast.error(error.message ?? 'Failed to add student');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to add student';
+      toast.error(message);
     },
     onSuccess: () => {
       toast.success('Student added successfully!');
       void queryClient.invalidateQueries({ queryKey: ['students'] });
+      // Reset form
+      setFormData({
+        classId: Number(classId),
+        departmentId,
+        email: '',
+        name: '',
+        phone: '',
+        registrationNumber: '',
+        rollNumber: '',
+      });
       onClose();
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate(formData);
+    
+    // Validate required fields
+    if (!formData.name?.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+    if (!formData.email?.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+    if (!formData.phone?.trim()) {
+      toast.error('Phone is required');
+      return;
+    }
+    
+    // Create clean payload (remove empty optional fields)
+    const payload: any = {
+      classId: formData.classId,
+      departmentId: formData.departmentId,
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+    };
+    
+    // Only add optional fields if they have values
+    if (formData.rollNumber?.trim()) {
+      payload.rollNumber = formData.rollNumber.trim();
+    }
+    if (formData.registrationNumber?.trim()) {
+      payload.registrationNumber = formData.registrationNumber.trim();
+    }
+    
+    mutation.mutate(payload);
   };
 
   const handleChange = (field: keyof AddStudentFormData, value: string) => {
@@ -74,8 +118,10 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
           <Button
             onClick={(e) => {
               e?.preventDefault();
-              const formEvent = new Event('submit', { bubbles: true, cancelable: true });
-              handleSubmit(formEvent as unknown as React.FormEvent);
+              // Trigger form validation by dispatching submit event
+              if (formRef.current) {
+                formRef.current.requestSubmit();
+              }
             }}
             variant="primary"
             disabled={mutation.isPending}
@@ -85,18 +131,19 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
         </>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Roll Number <span className="text-red-500">*</span>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Roll Number</label>
           <input
             type="text"
-            required
             value={formData.rollNumber}
             onChange={(e) => handleChange('rollNumber', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="Leave empty for auto-generation"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            If left empty, roll number will be auto-generated sequentially
+          </p>
         </div>
 
         <div>
@@ -140,9 +187,10 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Phone <span className="text-red-500">*</span></label>
           <input
             type="tel"
+            required
             value={formData.phone}
             onChange={(e) => handleChange('phone', e.target.value)}
             placeholder="10-digit phone number"

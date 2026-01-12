@@ -50,14 +50,14 @@ export function BulkImportStudentsModal({
 
   const handleFileSelect = (file: File | null) => {
     if (!file) return;
-    
+
     // Validate file type
     const validTypes = [
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'text/csv',
     ];
-    
+
     if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/i)) {
       toast.error('Please upload a valid Excel or CSV file');
       return;
@@ -66,19 +66,21 @@ export function BulkImportStudentsModal({
     setSelectedFile(file);
   };
 
-  const parseFile = async () => {
+  const parseFile = () => {
     if (!selectedFile) return;
 
     const reader = new FileReader();
-    reader.onload = async (evt) => {
+    reader.onload = (evt) => {
       try {
         const data = evt.target?.result;
         if (!data) throw new Error('Failed to read file');
-        
+
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const rows: Array<Record<string, any>> = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        const rows: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(sheet, {
+          defval: '',
+        });
 
         if (rows.length === 0) throw new Error('Excel file is empty');
 
@@ -147,8 +149,9 @@ export function BulkImportStudentsModal({
           // If all rows have roll numbers, upload directly
           importMutation.mutate({ students: studentsPayload });
         }
-      } catch (err: any) {
-        toast.error(err?.message || 'Failed to parse file');
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to parse file';
+        toast.error(errorMessage);
         setSelectedFile(null);
       }
     };
@@ -160,7 +163,7 @@ export function BulkImportStudentsModal({
       toast.error('Please select a file first');
       return;
     }
-    parseFile();
+    void parseFile();
   };
 
   const handleContinueImport = () => {
@@ -188,12 +191,7 @@ export function BulkImportStudentsModal({
 
   if (showWarning) {
     return (
-      <Modal
-        isOpen={isOpen}
-        onClose={resetAndClose}
-        title="Auto-Generate Roll Numbers?"
-        size="md"
-      >
+      <Modal isOpen={isOpen} onClose={resetAndClose} title="Auto-Generate Roll Numbers?" size="md">
         <div className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-yellow-800 font-medium mb-2">
@@ -223,12 +221,7 @@ export function BulkImportStudentsModal({
   }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={resetAndClose}
-      title="Import Students from Excel"
-      size="lg"
-    >
+    <Modal isOpen={isOpen} onClose={resetAndClose} title="Import Students from Excel" size="lg">
       <div className="space-y-6">
         {/* Info banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -248,9 +241,7 @@ export function BulkImportStudentsModal({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            isDragging
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400'
+            isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
           }`}
         >
           <input
@@ -266,9 +257,7 @@ export function BulkImportStudentsModal({
               <Upload className="w-8 h-8 text-green-500" />
               <div className="text-left">
                 <p className="font-medium text-gray-900">{selectedFile.name}</p>
-                <p className="text-sm text-gray-500">
-                  {(selectedFile.size / 1024).toFixed(2)} KB
-                </p>
+                <p className="text-sm text-gray-500">{(selectedFile.size / 1024).toFixed(2)} KB</p>
               </div>
               <button
                 onClick={() => setSelectedFile(null)}
@@ -280,18 +269,14 @@ export function BulkImportStudentsModal({
           ) : (
             <div>
               <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">
-                Drag and drop your Excel file here, or
-              </p>
+              <p className="text-gray-600 mb-2">Drag and drop your Excel file here, or</p>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="text-blue-600 hover:text-blue-700 font-medium"
               >
                 browse files
               </button>
-              <p className="text-xs text-gray-500 mt-2">
-                Supports .xlsx, .xls, and .csv files
-              </p>
+              <p className="text-xs text-gray-500 mt-2">Supports .xlsx, .xls, and .csv files</p>
             </div>
           )}
         </div>

@@ -31,7 +31,7 @@ public class Class {
   @Column(nullable = false)
   private Integer semester;
 
-  @Column(nullable = false)
+  @Column(name = "`year`", nullable = false)
   private Integer year;
 
   @Column(nullable = false)

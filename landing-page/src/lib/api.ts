@@ -38,7 +38,7 @@ api.interceptors.response.use(
       } else if (errorData.error) {
         userMessage = errorData.error;
       }
-      
+
       // Handle validation errors (Spring Boot format)
       if (errorData.errors && Array.isArray(errorData.errors)) {
         userMessage = errorData.errors.map((e: any) => e.defaultMessage || e.message).join(', ');
@@ -51,7 +51,7 @@ api.interceptors.response.use(
       case 400:
         userMessage = errorData?.message || 'Invalid request. Please check your input.';
         break;
-      case 401:
+      case 401: {
         const requestUrl = error.config?.url || '';
         const isAuthAttempt =
           requestUrl.includes('/auth/login') || requestUrl.includes('/auth/signup');
@@ -65,6 +65,7 @@ api.interceptors.response.use(
           userMessage = errorData?.message || 'Invalid credentials. Please try again.';
         }
         break;
+      }
       case 403:
         userMessage = errorData?.message || 'You do not have permission to perform this action.';
         break;

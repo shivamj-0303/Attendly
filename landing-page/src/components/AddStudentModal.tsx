@@ -12,8 +12,8 @@ interface AddStudentFormData {
   name: string;
   password?: string; // Optional - server will generate if not provided
   phone: string;
-  registrationNumber: string;
-  rollNumber: string;
+  registrationNumber?: string;
+  rollNumber?: string;
 }
 
 interface AddStudentModalProps {
@@ -66,7 +66,7 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.name?.trim()) {
       toast.error('Name is required');
@@ -80,16 +80,26 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
       toast.error('Phone is required');
       return;
     }
-    
+
     // Create clean payload (remove empty optional fields)
-    const payload: any = {
+    interface PayloadType {
+      classId: number;
+      departmentId: number;
+      name: string;
+      email: string;
+      phone: string;
+      rollNumber?: string;
+      registrationNumber?: string;
+    }
+
+    const payload: PayloadType = {
       classId: formData.classId,
       departmentId: formData.departmentId,
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
     };
-    
+
     // Only add optional fields if they have values
     if (formData.rollNumber?.trim()) {
       payload.rollNumber = formData.rollNumber.trim();
@@ -97,7 +107,7 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
     if (formData.registrationNumber?.trim()) {
       payload.registrationNumber = formData.registrationNumber.trim();
     }
-    
+
     mutation.mutate(payload);
   };
 
@@ -187,7 +197,9 @@ export function AddStudentModal({ classId, departmentId, isOpen, onClose }: AddS
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Phone <span className="text-red-500">*</span>
+          </label>
           <input
             type="tel"
             required

@@ -103,9 +103,8 @@ public class PasswordResetService {
           studentRepository
               .findById(otp.getUserId())
               .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-      student.setPassword(passwordEncoder.encode(request.getNewPassword()));
-      student.setFirstLogin(false);
-      studentRepository.save(student);
+  student.setPassword(passwordEncoder.encode(request.getNewPassword()));
+  studentRepository.save(student);
     } else if ("TEACHER".equals(otp.getUserType())) {
       Teacher teacher =
           teacherRepository

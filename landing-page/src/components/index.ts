@@ -3,6 +3,7 @@ export { AddClassModal } from './AddClassModal';
 export { AddStudentModal } from './AddStudentModal';
 export { AddTeacherModal } from './AddTeacherModal';
 export { AttendanceList } from './AttendanceList';
+export { BulkImportStudentsModal } from './BulkImportStudentsModal';
 export { Button } from './Button';
 export { Card } from './Card';
 export { ClassCard } from './ClassCard';

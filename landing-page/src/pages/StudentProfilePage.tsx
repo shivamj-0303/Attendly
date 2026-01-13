@@ -12,7 +12,6 @@ interface StudentProfile {
   rollNumber: string;
   registrationNumber?: string;
   phoneVerified: boolean;
-  firstLogin: boolean;
   classId: number;
   departmentId: number;
 }

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { Button, Modal } from '@/components';
-import type { ErrorResponse, Teacher } from '@/types';
+import type { Teacher } from '@/types';
 
 interface AddTeacherFormData {
   departmentId: number;
@@ -35,8 +35,9 @@ export function AddTeacherModal({ departmentId, isOpen, onClose }: AddTeacherMod
       const res = await api.post<Teacher>('/admin/teachers', data);
       return res.data;
     },
-    onError: (error: ErrorResponse) => {
-      toast.error(error.message ?? 'Failed to add teacher');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to add teacher';
+      toast.error(message);
     },
     onSuccess: () => {
       toast.success('Teacher added successfully!');

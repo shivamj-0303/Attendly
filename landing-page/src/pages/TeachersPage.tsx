@@ -5,7 +5,7 @@ import { ChevronLeft, Plus, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { AddTeacherModal, TeacherTable } from '@/components';
-import type { ErrorResponse, Teacher } from '@/types';
+import type { Teacher } from '@/types';
 import type { Department } from '@/types/department';
 
 export default function TeachersPage() {
@@ -41,8 +41,9 @@ export default function TeachersPage() {
     mutationFn: async (teacherId: number) => {
       await api.delete(`/admin/teachers/${teacherId}`);
     },
-    onError: (error: ErrorResponse) => {
-      toast.error(error.message ?? 'Failed to delete teacher');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to delete teacher';
+      toast.error(message);
     },
     onSuccess: () => {
       toast.success('Teacher deleted successfully!');

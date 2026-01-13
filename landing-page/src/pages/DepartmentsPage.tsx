@@ -4,9 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Plus } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-hot-toast';
-import type { AxiosError } from 'axios';
 import type { Department } from '@/types/department';
-import type { ApiError } from '@/types/api';
 
 export default function DepartmentsPage() {
   const navigate = useNavigate();
@@ -123,8 +121,9 @@ function AddDepartmentModal({
       toast.success('Department added successfully!');
       onSuccess();
     },
-    onError: (error: AxiosError<ApiError>) => {
-      toast.error(error.response?.data?.message || 'Failed to add department');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to add department';
+      toast.error(message);
     },
   });
 

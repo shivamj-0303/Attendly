@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Calendar, ChevronLeft, Plus, Search } from 'lucide-react';
+import { Calendar, ChevronLeft, Plus, Search, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import { AddStudentModal, StudentTable } from '@/components';
-import type { ErrorResponse, Student } from '@/types';
+import { AddStudentModal, BulkImportStudentsModal, StudentTable } from '@/components';
+import type { Student } from '@/types';
 import type { Class } from '@/types/department';
 
 export default function StudentsPage() {
@@ -15,6 +15,7 @@ export default function StudentsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
 
   const { data: classData } = useQuery<Class>({
     enabled: !!classId,
@@ -41,8 +42,9 @@ export default function StudentsPage() {
     mutationFn: async (studentId: number) => {
       await api.delete(`/admin/students/${studentId}`);
     },
-    onError: (error: ErrorResponse) => {
-      toast.error(error.message ?? 'Failed to delete student');
+    onError: (error: any) => {
+      const message = error?.userMessage || error?.message || 'Failed to delete student';
+      toast.error(message);
     },
     onSuccess: () => {
       toast.success('Student deleted successfully!');
@@ -80,6 +82,13 @@ export default function StudentsPage() {
             Timetable
           </button>
           <button
+            onClick={() => setShowBulkImportModal(true)}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2"
+          >
+            <Upload className="w-5 h-5" />
+            Import from Excel
+          </button>
+          <button
             onClick={() => setShowAddModal(true)}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
           >
@@ -110,6 +119,15 @@ export default function StudentsPage() {
           departmentId={classData.departmentId}
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {showBulkImportModal && classData && (
+        <BulkImportStudentsModal
+          classId={classId ?? ''}
+          departmentId={classData.departmentId}
+          isOpen={showBulkImportModal}
+          onClose={() => setShowBulkImportModal(false)}
         />
       )}
     </div>

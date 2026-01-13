@@ -45,7 +45,6 @@ export interface BaseUser {
   email: string;
   phone?: string;
   isActive: boolean;
-  firstLogin?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

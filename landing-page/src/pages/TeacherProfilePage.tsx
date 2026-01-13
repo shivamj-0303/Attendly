@@ -9,7 +9,6 @@ interface TeacherProfile {
   name: string;
   email: string;
   phone?: string;
-  firstLogin: boolean;
   departmentId: number;
   isActive: boolean;
 }

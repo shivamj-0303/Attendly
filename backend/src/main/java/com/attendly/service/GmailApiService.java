@@ -25,16 +25,17 @@ public class GmailApiService {
   private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
   private static final String APPLICATION_NAME = "Attendly";
 
-  @Value("${spring.gmail.oauth.client-id}")
+  // Use the 'gmail' keys (matches application.yml) and provide empty defaults so tests do not fail when vars are absent
+  @Value("${gmail.oauth.client-id:}")
   private String clientId;
 
-  @Value("${spring.gmail.oauth.client-secret}")
+  @Value("${gmail.oauth.client-secret:}")
   private String clientSecret;
 
-  @Value("${spring.gmail.oauth.refresh-token}")
+  @Value("${gmail.oauth.refresh-token:}")
   private String refreshToken;
 
-  @Value("${spring.gmail.user.email}")
+  @Value("${gmail.user.email:}")
   private String userEmail;
 
   public void sendEmail(String to, String subject, String htmlBody) {

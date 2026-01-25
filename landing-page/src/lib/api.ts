@@ -43,16 +43,16 @@ api.interceptors.request.use(
 // Response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError<{ message?: string; error?: string; errors?: any }>) => {
-    const originalRequest: any = error.config;
+  async (error: AxiosError<{ message?: string; error?: string; errors?: unknown }>) => {
+    const originalRequest = error.config as typeof error.config & { _retry?: boolean };
 
     // Handle token refresh on 401
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      const requestUrl = originalRequest.url || '';
-      const isAuthAttempt =
-        requestUrl.includes('/auth/login') ||
-        requestUrl.includes('/auth/signup') ||
-        requestUrl.includes('/auth/refresh');
+    if (error.response?.status === 401 && !originalRequest?._retry) {
+      const requestUrl = originalRequest?.url || '';
+      const isLoginAttempt = requestUrl.includes('/auth/login');
+      const isSignupAttempt = requestUrl.includes('/auth/signup');
+      const isRefreshAttempt = requestUrl.includes('/auth/refresh');
+      const isAuthAttempt = isLoginAttempt || isSignupAttempt || isRefreshAttempt;
 
       if (!isAuthAttempt) {
         if (isRefreshing) {
@@ -61,10 +61,12 @@ api.interceptors.response.use(
             failedQueue.push({ resolve, reject });
           })
             .then((token) => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
+              if (originalRequest) {
+                originalRequest.headers.Authorization = `Bearer ${token as string}`;
+              }
               return api(originalRequest);
             })
-            .catch((err) => Promise.reject(err));
+            .catch((err: unknown) => Promise.reject(err));
         }
 
         originalRequest._retry = true;
@@ -91,8 +93,8 @@ api.interceptors.response.use(
             userRole === 'STUDENT'
               ? '/auth/user/student/refresh'
               : userRole === 'TEACHER'
-              ? '/auth/user/teacher/refresh'
-              : '/auth/refresh';
+                ? '/auth/user/teacher/refresh'
+                : '/auth/refresh';
 
           const response = await axios.post(
             `${API_BASE_URL}${refreshEndpoint}`,
@@ -142,7 +144,10 @@ api.interceptors.response.use(
 
       // Handle validation errors (Spring Boot format)
       if (errorData.errors && Array.isArray(errorData.errors)) {
-        userMessage = errorData.errors.map((e: any) => e.defaultMessage || e.message).join(', ');
+        userMessage = errorData.errors
+          .map((e: { defaultMessage?: string; message?: string }) => e.defaultMessage || e.message)
+          .filter((msg): msg is string => typeof msg === 'string')
+          .join(', ');
       }
     }
 

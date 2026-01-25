@@ -45,7 +45,7 @@ export default function StudentProfilePage() {
     try {
       setIsLoading(true);
       const response = await api.get<StudentProfile>('/student/profile');
-  setProfile(response.data);
+      setProfile(response.data);
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       console.error('Failed to fetch profile:', error);
@@ -58,8 +58,18 @@ export default function StudentProfilePage() {
   const fetchAttendance = async () => {
     // Fetch real attendance report from backend
     try {
-      const response = await api.get('/student/attendance/report');
-      
+      const response = await api.get<{
+        overallPercentage: number;
+        classesPresent: number;
+        totalClasses: number;
+        subjectBreakdown: Array<{
+          subjectName: string;
+          percentage: number;
+          totalClasses: number;
+          classesPresent: number;
+        }>;
+      }>('/student/attendance/report');
+
       if (response?.data) {
         const reportData = response.data;
         // Set attendance summary from API response
@@ -72,7 +82,7 @@ export default function StudentProfilePage() {
         // Set subjects from API response
         if (reportData.subjectBreakdown && reportData.subjectBreakdown.length > 0) {
           setSubjects(
-            reportData.subjectBreakdown.map((subject: any) => ({
+            reportData.subjectBreakdown.map((subject) => ({
               name: subject.subjectName,
               percent: Math.round(subject.percentage),
             }))
@@ -148,8 +158,19 @@ export default function StudentProfilePage() {
                 aria-label="Edit profile photo"
                 className="absolute left-6 top-6 bg-white/20 hover:bg-white/30 p-2 rounded-full text-white"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M4 20h4.586a1 1 0 00.707-.293l9.414-9.414a1 1 0 000-1.414L16.707 4.293a1 1 0 00-1.414 0L6.878 12.707A1 1 0 006.585 13H2v4z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536M4 20h4.586a1 1 0 00.707-.293l9.414-9.414a1 1 0 000-1.414L16.707 4.293a1 1 0 00-1.414 0L6.878 12.707A1 1 0 006.585 13H2v4z"
+                  />
                 </svg>
               </button>
 
@@ -159,12 +180,26 @@ export default function StudentProfilePage() {
                 aria-label="Open settings"
                 className="absolute right-6 top-6 bg-white/20 hover:bg-white/30 p-2 rounded-full text-white"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0a1.724 1.724 0 002.558 1.01c.835-.5 1.9.27 1.64 1.21a1.724 1.724 0 00.95 2.058c.913.39.913 1.722 0 2.112a1.724 1.724 0 00-.95 2.058c.26.94-.805 1.71-1.64 1.21a1.724 1.724 0 00-2.558 1.01c-.299.921-1.602.921-1.902 0a1.724 1.724 0 00-2.558-1.01c-.835.5-1.9-.27-1.64-1.21a1.724 1.724 0 00-.95-2.058c-.913-.39-.913-1.722 0-2.112.35-.15.64-.41.95-.79" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0a1.724 1.724 0 002.558 1.01c.835-.5 1.9.27 1.64 1.21a1.724 1.724 0 00.95 2.058c.913.39.913 1.722 0 2.112a1.724 1.724 0 00-.95 2.058c.26.94-.805 1.71-1.64 1.21a1.724 1.724 0 00-2.558 1.01c-.299.921-1.602.921-1.902 0a1.724 1.724 0 00-2.558-1.01c-.835.5-1.9-.27-1.64-1.21a1.724 1.724 0 00-.95-2.058c-.913-.39-.913-1.722 0-2.112.35-.15.64-.41.95-.79"
+                  />
                 </svg>
               </button>
 
-              <div ref={avatarRef} className="w-28 h-28 rounded-full border-4 border-white bg-blue-700 flex items-center justify-center transform transition-transform duration-150">
+              <div
+                ref={avatarRef}
+                className="w-28 h-28 rounded-full border-4 border-white bg-blue-700 flex items-center justify-center transform transition-transform duration-150"
+              >
                 <span className="text-4xl font-bold text-white">
                   {profile.name.charAt(0).toUpperCase()}
                 </span>
@@ -173,7 +208,9 @@ export default function StudentProfilePage() {
 
             <div className="text-center mt-4">
               <h2 className="text-2xl font-bold text-white">{profile.name}</h2>
-              <span className="inline-block mt-2 bg-white/20 text-white text-sm px-3 py-1 rounded-full">Student</span>
+              <span className="inline-block mt-2 bg-white/20 text-white text-sm px-3 py-1 rounded-full">
+                Student
+              </span>
             </div>
           </div>
 
@@ -182,15 +219,21 @@ export default function StudentProfilePage() {
             <div className="bg-white shadow-md rounded-lg p-4 grid grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-sm text-gray-500">Attendance</div>
-                <div className="mt-1 text-2xl font-bold text-gray-900">{attendanceSummary?.percent ?? '--'}%</div>
+                <div className="mt-1 text-2xl font-bold text-gray-900">
+                  {attendanceSummary?.percent ?? '--'}%
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-sm text-gray-500">Present</div>
-                <div className="mt-1 text-2xl font-bold text-gray-900">{attendanceSummary?.present ?? '--'}</div>
+                <div className="mt-1 text-2xl font-bold text-gray-900">
+                  {attendanceSummary?.present ?? '--'}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-sm text-gray-500">Absent</div>
-                <div className="mt-1 text-2xl font-bold text-gray-900">{attendanceSummary?.absent ?? '--'}</div>
+                <div className="mt-1 text-2xl font-bold text-gray-900">
+                  {attendanceSummary?.absent ?? '--'}
+                </div>
               </div>
             </div>
           </div>
@@ -206,11 +249,18 @@ export default function StudentProfilePage() {
                 fill="none"
                 stroke="#3b82f6"
                 strokeWidth={3}
-                points={subjects.map((s, i) => `${(i / Math.max(1, subjects.length - 1)) * 200},${80 - (s.percent / 100) * 60}`).join(' ')}
+                points={subjects
+                  .map(
+                    (s, i) =>
+                      `${(i / Math.max(1, subjects.length - 1)) * 200},${80 - (s.percent / 100) * 60}`
+                  )
+                  .join(' ')}
               />
             </svg>
           </div>
-          <p className="text-sm text-gray-500 mt-3">Scroll the page — the avatar will animate and resize.</p>
+          <p className="text-sm text-gray-500 mt-3">
+            Scroll the page — the avatar will animate and resize.
+          </p>
         </div>
 
         {/* Subject-wise report */}
@@ -221,9 +271,14 @@ export default function StudentProfilePage() {
               <div key={s.name} className="flex items-center gap-4">
                 <div className="w-36 text-sm text-gray-600">{s.name}</div>
                 <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
-                  <div className="h-4 bg-blue-600 rounded-full" style={{ width: `${s.percent}%` }} />
+                  <div
+                    className="h-4 bg-blue-600 rounded-full"
+                    style={{ width: `${s.percent}%` }}
+                  />
                 </div>
-                <div className="w-12 text-right text-sm font-medium text-gray-700">{s.percent}%</div>
+                <div className="w-12 text-right text-sm font-medium text-gray-700">
+                  {s.percent}%
+                </div>
               </div>
             ))}
           </div>
@@ -232,12 +287,17 @@ export default function StudentProfilePage() {
         {/* Settings drawer/modal tied to gear icon */}
         {showSettings && (
           <div className="fixed inset-0 z-40 flex items-end md:items-center justify-center">
-            <div className="absolute inset-0 bg-black opacity-30" onClick={() => setShowSettings(false)} />
+            <div
+              className="absolute inset-0 bg-black opacity-30"
+              onClick={() => setShowSettings(false)}
+            />
             <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6 z-50">
               <h4 className="text-lg font-semibold mb-3">Settings</h4>
               <div className="mb-4">
                 <h5 className="text-sm font-medium text-gray-600">Account Info</h5>
-                <p className="text-sm text-gray-800 mt-1">{profile.name} • {profile.email}</p>
+                <p className="text-sm text-gray-800 mt-1">
+                  {profile.name} • {profile.email}
+                </p>
                 <p className="text-sm text-gray-500">Roll: {profile.rollNumber}</p>
               </div>
 
@@ -252,13 +312,18 @@ export default function StudentProfilePage() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => { setShowSettings(false); setShowPasswordReset(true); }}
+                  onClick={() => {
+                    setShowSettings(false);
+                    setShowPasswordReset(true);
+                  }}
                   className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg"
                 >
                   Reset Password
                 </button>
                 <button
-                  onClick={() => { window.location.href = '/logout'; }}
+                  onClick={() => {
+                    window.location.href = '/logout';
+                  }}
                   className="flex-1 bg-gray-100 text-gray-800 py-2 px-4 rounded-lg"
                 >
                   Sign Out

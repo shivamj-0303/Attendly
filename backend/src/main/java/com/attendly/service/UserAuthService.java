@@ -23,8 +23,9 @@ public class UserAuthService {
   private final TeacherRepository teacherRepository;
   private final JwtService jwtService;
   private final PasswordEncoder passwordEncoder;
+  private final RefreshTokenService refreshTokenService;
 
-  @Transactional(readOnly = true)
+  @Transactional
   public AuthResponse studentLogin(LoginRequest request) {
     // Get student details
     Student student =
@@ -61,11 +62,21 @@ public class UserAuthService {
 
     String jwtToken = jwtService.generateToken(claims, userDetails);
 
-    return new AuthResponse(
-        jwtToken, student.getId(), student.getName(), student.getEmail(), "STUDENT");
+    // Generate refresh token
+    var refreshToken =
+        refreshTokenService.createRefreshToken(student.getEmail(), "STUDENT", userDetails);
+
+    return AuthResponse.builder()
+        .token(jwtToken)
+        .refreshToken(refreshToken.getToken())
+        .id(student.getId())
+        .name(student.getName())
+        .email(student.getEmail())
+        .role("STUDENT")
+        .build();
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public AuthResponse teacherLogin(LoginRequest request) {
     // Get teacher details
     Teacher teacher =
@@ -101,7 +112,94 @@ public class UserAuthService {
 
     String jwtToken = jwtService.generateToken(claims, userDetails);
 
-    return new AuthResponse(
-        jwtToken, teacher.getId(), teacher.getName(), teacher.getEmail(), "TEACHER");
+    // Generate refresh token
+    var refreshToken =
+        refreshTokenService.createRefreshToken(teacher.getEmail(), "TEACHER", userDetails);
+
+    return AuthResponse.builder()
+        .token(jwtToken)
+        .refreshToken(refreshToken.getToken())
+        .id(teacher.getId())
+        .name(teacher.getName())
+        .email(teacher.getEmail())
+        .role("TEACHER")
+        .build();
+  }
+
+  @Transactional
+  public AuthResponse refreshStudentToken(String refreshTokenStr) {
+    return refreshTokenService
+        .findByToken(refreshTokenStr)
+        .filter(rt -> rt.getUserType().equals("STUDENT"))
+        .map(refreshTokenService::verifyExpiration)
+        .map(
+            refreshToken -> {
+              Student student =
+                  studentRepository
+                      .findByEmail(refreshToken.getUsername())
+                      .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+
+              Map<String, Object> claims = new HashMap<>();
+              claims.put("userId", student.getId());
+              claims.put("name", student.getName());
+              claims.put("role", "STUDENT");
+              claims.put("classId", student.getClassId());
+              claims.put("departmentId", student.getDepartmentId());
+
+              org.springframework.security.core.userdetails.User userDetails =
+                  new org.springframework.security.core.userdetails.User(
+                      student.getEmail(), student.getPassword(), java.util.Collections.emptyList());
+
+              String newAccessToken = jwtService.generateToken(claims, userDetails);
+
+              return AuthResponse.builder()
+                  .token(newAccessToken)
+                  .refreshToken(refreshTokenStr)
+                  .id(student.getId())
+                  .name(student.getName())
+                  .email(student.getEmail())
+                  .role("STUDENT")
+                  .build();
+            })
+        .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+  }
+
+  @Transactional
+  public AuthResponse refreshTeacherToken(String refreshTokenStr) {
+    return refreshTokenService
+        .findByToken(refreshTokenStr)
+        .filter(rt -> rt.getUserType().equals("TEACHER"))
+        .map(refreshTokenService::verifyExpiration)
+        .map(
+            refreshToken -> {
+              Teacher teacher =
+                  teacherRepository
+                      .findByEmail(refreshToken.getUsername())
+                      .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+
+              Map<String, Object> claims = new HashMap<>();
+              claims.put("userId", teacher.getId());
+              claims.put("name", teacher.getName());
+              claims.put("role", "TEACHER");
+              claims.put("departmentId", teacher.getDepartmentId());
+
+              org.springframework.security.core.userdetails.User userDetails =
+                  new org.springframework.security.core.userdetails.User(
+                      teacher.getEmail(),
+                      teacher.getPassword(),
+                      java.util.Collections.emptyList());
+
+              String newAccessToken = jwtService.generateToken(claims, userDetails);
+
+              return AuthResponse.builder()
+                  .token(newAccessToken)
+                  .refreshToken(refreshTokenStr)
+                  .id(teacher.getId())
+                  .name(teacher.getName())
+                  .email(teacher.getEmail())
+                  .role("TEACHER")
+                  .build();
+            })
+        .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
   }
 }

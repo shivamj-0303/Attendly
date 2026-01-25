@@ -2,6 +2,7 @@ package com.attendly.controller;
 
 import com.attendly.dto.AuthResponse;
 import com.attendly.dto.LoginRequest;
+import com.attendly.dto.RefreshTokenRequest;
 import com.attendly.dto.SignupRequest;
 import com.attendly.service.AuthService;
 import jakarta.validation.Valid;
@@ -26,6 +27,13 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
     AuthResponse response = authService.login(request);
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/refresh")
+  public ResponseEntity<AuthResponse> refreshToken(
+      @Valid @RequestBody RefreshTokenRequest request) {
+    AuthResponse response = authService.refreshToken(request.getRefreshToken());
     return ResponseEntity.ok(response);
   }
 }

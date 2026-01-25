@@ -4,6 +4,7 @@ import com.attendly.dto.AuthResponse;
 import com.attendly.dto.LoginRequest;
 import com.attendly.dto.OtpVerificationRequest;
 import com.attendly.dto.PasswordResetRequest;
+import com.attendly.dto.RefreshTokenRequest;
 import com.attendly.dto.ResetPasswordRequest;
 import com.attendly.service.PasswordResetService;
 import com.attendly.service.UserAuthService;
@@ -30,6 +31,20 @@ public class UserAuthController {
   @PostMapping("/teacher/login")
   public ResponseEntity<AuthResponse> teacherLogin(@Valid @RequestBody LoginRequest request) {
     AuthResponse response = userAuthService.teacherLogin(request);
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/student/refresh")
+  public ResponseEntity<AuthResponse> refreshStudentToken(
+      @Valid @RequestBody RefreshTokenRequest request) {
+    AuthResponse response = userAuthService.refreshStudentToken(request.getRefreshToken());
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/teacher/refresh")
+  public ResponseEntity<AuthResponse> refreshTeacherToken(
+      @Valid @RequestBody RefreshTokenRequest request) {
+    AuthResponse response = userAuthService.refreshTeacherToken(request.getRefreshToken());
     return ResponseEntity.ok(response);
   }
 

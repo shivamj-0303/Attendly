@@ -24,6 +24,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
   List<Student> findByClassIdOrderByRollNumber(Long classId);
 
   List<Student> findByClassIdAndIsActiveOrderByRollNumber(Long classId, Boolean isActive);
+  
+  int countByClassId(Long classId);
 
   List<Student> findByDepartmentId(Long departmentId);
 

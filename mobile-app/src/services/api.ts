@@ -5,7 +5,8 @@ import { API_BASE_URL } from '../config/api.config';
 /**
  * Axios instance configured for the Attendly API
  * - Includes authentication token in requests
- * - Handles 401 errors by clearing auth and redirecting to login
+ * - Handles 401 errors by attempting refresh token flow
+ * - Falls back to logout if refresh fails
  */
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -14,6 +15,23 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 /**
  * Request Interceptor
@@ -34,17 +52,85 @@ api.interceptors.request.use(
 
 /**
  * Response Interceptor
- * Handles authentication errors (401) by clearing stored credentials
- * This forces the user to re-authenticate on token expiration
+ * Handles authentication errors (401) by attempting to refresh the token
+ * If refresh fails, clears stored credentials and forces re-authentication
  */
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Clear authentication data on unauthorized response
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('user');
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue this request while refresh is in progress
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = await AsyncStorage.getItem('refreshToken');
+      const userRole = await AsyncStorage.getItem('userRole');
+
+      if (!refreshToken || !userRole) {
+        // No refresh token available, clear auth
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('refreshToken');
+        await AsyncStorage.removeItem('user');
+        await AsyncStorage.removeItem('userRole');
+        processQueue(error, null);
+        isRefreshing = false;
+        return Promise.reject(error);
+      }
+
+      try {
+        // Determine refresh endpoint based on user role
+        const refreshEndpoint =
+          userRole === 'STUDENT'
+            ? '/auth/user/student/refresh'
+            : userRole === 'TEACHER'
+            ? '/auth/user/teacher/refresh'
+            : '/auth/refresh';
+
+        const response = await axios.post(
+          `${API_BASE_URL}${refreshEndpoint}`,
+          { refreshToken },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        const { token, refreshToken: newRefreshToken } = response.data;
+
+        // Update stored tokens
+        await AsyncStorage.setItem('token', token);
+        if (newRefreshToken) {
+          await AsyncStorage.setItem('refreshToken', newRefreshToken);
+        }
+
+        // Update the original request and all queued requests
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        processQueue(null, token);
+        isRefreshing = false;
+
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed, clear everything
+        processQueue(refreshError, null);
+        isRefreshing = false;
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('refreshToken');
+        await AsyncStorage.removeItem('user');
+        await AsyncStorage.removeItem('userRole');
+        return Promise.reject(refreshError);
+      }
     }
+
     return Promise.reject(error);
   }
 );
@@ -64,6 +150,7 @@ export interface SignupRequest {
 
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   type: string;
   id: number;
   name: string;
@@ -79,29 +166,39 @@ export const authService = {
     const endpoint =
       userType === 'student' ? '/auth/user/student/login' : '/auth/user/teacher/login';
     const response = await api.post(endpoint, credentials);
-    const { token, id, name, email, role } = response.data;
+    const { token, refreshToken, id, name, email, role } = response.data;
 
-    // Store token and user data
+    // Store token, refresh token, and user data
     await AsyncStorage.setItem('token', token);
+    if (refreshToken) {
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+    }
     await AsyncStorage.setItem('user', JSON.stringify({ id, name, email, role }));
+    await AsyncStorage.setItem('userRole', role);
 
     return response.data;
   },
 
   signup: async (data: SignupRequest): Promise<AuthResponse> => {
     const response = await api.post('/auth/signup', data);
-    const { token, id, name, email, role } = response.data;
+    const { token, refreshToken, id, name, email, role } = response.data;
 
-    // Store token and user data
+    // Store token, refresh token, and user data
     await AsyncStorage.setItem('token', token);
+    if (refreshToken) {
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+    }
     await AsyncStorage.setItem('user', JSON.stringify({ id, name, email, role }));
+    await AsyncStorage.setItem('userRole', role);
 
     return response.data;
   },
 
   logout: async (): Promise<void> => {
     await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('refreshToken');
     await AsyncStorage.removeItem('user');
+    await AsyncStorage.removeItem('userRole');
   },
 
   getCurrentUser: async () => {

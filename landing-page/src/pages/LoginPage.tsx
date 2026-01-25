@@ -29,7 +29,8 @@ export default function LoginPage() {
           phone: '',
           role: data.role,
         },
-        data.token
+        data.token,
+        data.refreshToken
       );
       toast.success('Login successful!');
       void navigate('/admin/dashboard');

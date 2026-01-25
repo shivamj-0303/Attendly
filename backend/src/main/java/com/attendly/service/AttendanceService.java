@@ -147,6 +147,11 @@ public class AttendanceService {
   }
 
   public AttendanceReportResponse getStudentAttendanceReport(Long studentId) {
+    return getStudentAttendanceReport(studentId, null, null);
+  }
+
+  public AttendanceReportResponse getStudentAttendanceReport(
+      Long studentId, LocalDate startDate, LocalDate endDate) {
     // Verify student exists
     Student student =
         studentRepository
@@ -155,13 +160,25 @@ public class AttendanceService {
                 () -> new ResourceNotFoundException("Student not found with id: " + studentId));
 
     // Get all attendance records for the student
-    List<Attendance> attendanceList = attendanceRepository.findByStudentId(studentId);
+    List<Attendance> attendanceList;
+    if (startDate != null && endDate != null) {
+      attendanceList =
+          attendanceRepository.findByStudentIdAndDateBetween(studentId, startDate, endDate);
+    } else {
+      attendanceList = attendanceRepository.findByStudentId(studentId);
+    }
 
-    // Calculate overall stats
-    int totalClasses = attendanceList.size();
+    // Filter out NOT_MARKED status - only count classes where attendance was actually marked
+    List<Attendance> markedAttendanceList =
+        attendanceList.stream()
+            .filter(a -> !"NOT_MARKED".equalsIgnoreCase(a.getStatus()))
+            .collect(Collectors.toList());
+
+    // Calculate overall stats (only from marked attendance)
+    int totalClasses = markedAttendanceList.size();
     int classesPresent =
         (int)
-            attendanceList.stream()
+            markedAttendanceList.stream()
                 .filter(a -> "PRESENT".equalsIgnoreCase(a.getStatus()))
                 .count();
     double overallPercentage = totalClasses > 0 ? (classesPresent * 100.0) / totalClasses : 0.0;
@@ -169,7 +186,7 @@ public class AttendanceService {
     // Calculate subject-wise breakdown
     Map<String, SubjectStats> subjectStatsMap = new HashMap<>();
 
-    for (Attendance attendance : attendanceList) {
+    for (Attendance attendance : markedAttendanceList) {
       TimetableSlot slot =
           timetableSlotRepository.findById(attendance.getTimetableSlotId()).orElse(null);
       if (slot != null && slot.getSubject() != null) {

@@ -36,14 +36,6 @@ export default function LandingPage() {
                 <LogIn className="h-4 w-4" />
                 Login
               </Link>
-              <a
-                href="https://github.com/shivamj-0303/Attendly"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-600 hover:text-gray-900 transition"
-              >
-                GitHub
-              </a>
             </div>
           </div>
         </div>
@@ -297,16 +289,6 @@ export default function LandingPage() {
                 <li>
                   <a href="#" className="hover:text-white transition">
                     Documentation
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/shivamj-0303/Attendly"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-white transition"
-                  >
-                    GitHub
                   </a>
                 </li>
               </ul>

@@ -24,6 +24,7 @@ public class AuthService {
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
+  private final RefreshTokenService refreshTokenService;
 
   @Transactional
   public AuthResponse signup(SignupRequest request) {
@@ -65,11 +66,20 @@ public class AuthService {
     claims.put("name", admin.getName());
     String jwtToken = jwtService.generateToken(claims, admin);
 
-    return new AuthResponse(
-        jwtToken, admin.getId(), admin.getName(), admin.getEmail(), admin.getRole().name());
+    // Generate refresh token
+    var refreshToken = refreshTokenService.createRefreshToken(admin.getEmail(), "ADMIN", admin);
+
+    return AuthResponse.builder()
+        .token(jwtToken)
+        .refreshToken(refreshToken.getToken())
+        .id(admin.getId())
+        .name(admin.getName())
+        .email(admin.getEmail())
+        .role(admin.getRole().name())
+        .build();
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public AuthResponse login(LoginRequest request) {
     // Authenticate user
     authenticationManager.authenticate(
@@ -88,7 +98,50 @@ public class AuthService {
     claims.put("name", admin.getName());
     String jwtToken = jwtService.generateToken(claims, admin);
 
-    return new AuthResponse(
-        jwtToken, admin.getId(), admin.getName(), admin.getEmail(), admin.getRole().name());
+    // Generate refresh token
+    var refreshToken = refreshTokenService.createRefreshToken(admin.getEmail(), "ADMIN", admin);
+
+    return AuthResponse.builder()
+        .token(jwtToken)
+        .refreshToken(refreshToken.getToken())
+        .id(admin.getId())
+        .name(admin.getName())
+        .email(admin.getEmail())
+        .role(admin.getRole().name())
+        .build();
+  }
+
+  @Transactional
+  public AuthResponse refreshToken(String refreshTokenStr) {
+    return refreshTokenService
+        .findByToken(refreshTokenStr)
+        .map(refreshTokenService::verifyExpiration)
+        .map(
+            refreshToken -> {
+              // Get admin by username
+              Admin admin =
+                  adminRepository
+                      .findByEmail(refreshToken.getUsername())
+                      .orElseThrow(
+                          () ->
+                              new com.attendly.exception.ResourceNotFoundException(
+                                  "Admin not found"));
+
+              // Generate new access token
+              Map<String, Object> claims = new HashMap<>();
+              claims.put("adminId", admin.getId());
+              claims.put("name", admin.getName());
+              String newAccessToken = jwtService.generateToken(claims, admin);
+
+              return AuthResponse.builder()
+                  .token(newAccessToken)
+                  .refreshToken(refreshTokenStr)
+                  .id(admin.getId())
+                  .name(admin.getName())
+                  .email(admin.getEmail())
+                  .role(admin.getRole().name())
+                  .build();
+            })
+        .orElseThrow(() -> new RuntimeException("Refresh token not found"));
   }
 }

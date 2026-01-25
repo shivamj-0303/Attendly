@@ -49,7 +49,12 @@ server:
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET:YourSuperSecretKeyForJWTTokenGenerationMustBeLongEnough}
-  expiration: 86400000 # 24 hours in milliseconds
+  expiration: 900000 # 15 minutes in milliseconds (short-lived access token)
+  refresh-expiration: 604800000 # 7 days in milliseconds (long-lived refresh token)
+
+# Attendance System Configuration
+attendance:
+  use-timetable-linked: true # Use optimized timetable-linked approach (99% space savings)
 
 # CORS Configuration
 cors:

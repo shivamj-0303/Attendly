@@ -31,6 +31,7 @@ export interface SignupRequest {
 
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   type: string;
   id: number;
   name: string;

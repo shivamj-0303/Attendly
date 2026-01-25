@@ -9,6 +9,23 @@ export const api = axios.create({
   },
 });
 
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Request interceptor to add token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -26,7 +43,91 @@ api.interceptors.request.use(
 // Response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<{ message?: string; error?: string; errors?: any }>) => {
+  async (error: AxiosError<{ message?: string; error?: string; errors?: any }>) => {
+    const originalRequest: any = error.config;
+
+    // Handle token refresh on 401
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const requestUrl = originalRequest.url || '';
+      const isAuthAttempt =
+        requestUrl.includes('/auth/login') ||
+        requestUrl.includes('/auth/signup') ||
+        requestUrl.includes('/auth/refresh');
+
+      if (!isAuthAttempt) {
+        if (isRefreshing) {
+          // Queue this request while refresh is in progress
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
+            .then((token) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              return api(originalRequest);
+            })
+            .catch((err) => Promise.reject(err));
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        const refreshToken = localStorage.getItem('refreshToken');
+        const userRole = localStorage.getItem('userRole');
+
+        if (!refreshToken || !userRole) {
+          // No refresh token available, clear auth and redirect
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('userRole');
+          window.location.href = '/login';
+          processQueue(error, null);
+          isRefreshing = false;
+          return Promise.reject(error);
+        }
+
+        try {
+          // Determine refresh endpoint based on user role
+          const refreshEndpoint =
+            userRole === 'STUDENT'
+              ? '/auth/user/student/refresh'
+              : userRole === 'TEACHER'
+              ? '/auth/user/teacher/refresh'
+              : '/auth/refresh';
+
+          const response = await axios.post(
+            `${API_BASE_URL}${refreshEndpoint}`,
+            { refreshToken },
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+
+          const { token, refreshToken: newRefreshToken } = response.data;
+
+          // Update stored tokens
+          localStorage.setItem('token', token);
+          if (newRefreshToken) {
+            localStorage.setItem('refreshToken', newRefreshToken);
+          }
+
+          // Update the original request and all queued requests
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          processQueue(null, token);
+          isRefreshing = false;
+
+          return api(originalRequest);
+        } catch (refreshError) {
+          // Refresh failed, clear everything and redirect
+          processQueue(refreshError, null);
+          isRefreshing = false;
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('userRole');
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      }
+    }
+
     // Extract user-friendly error message
     const errorData = error.response?.data;
     let userMessage = 'An error occurred. Please try again.';
@@ -54,13 +155,13 @@ api.interceptors.response.use(
       case 401: {
         const requestUrl = error.config?.url || '';
         const isAuthAttempt =
-          requestUrl.includes('/auth/login') || requestUrl.includes('/auth/signup');
+          requestUrl.includes('/auth/login') ||
+          requestUrl.includes('/auth/signup') ||
+          requestUrl.includes('/auth/refresh');
 
         if (!isAuthAttempt) {
+          // Already handled by refresh logic above, just set message
           userMessage = 'Session expired. Please login again.';
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
         } else {
           userMessage = errorData?.message || 'Invalid credentials. Please try again.';
         }

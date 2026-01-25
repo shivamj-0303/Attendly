@@ -3,15 +3,15 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
 interface TabBarProps {
-  activeTab: 'report' | 'today' | 'week';
-  onTabChange: (tab: 'report' | 'today' | 'week') => void;
-  showReportTab?: boolean;
+  activeTab: 'calendar' | 'today' | 'week';
+  onTabChange: (tab: 'calendar' | 'today' | 'week') => void;
+  showCalendarTab?: boolean;
 }
 
 export const ThreeTabBar: React.FC<TabBarProps> = ({
   activeTab,
   onTabChange,
-  showReportTab = false,
+  showCalendarTab = false,
 }) => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
@@ -24,10 +24,10 @@ export const ThreeTabBar: React.FC<TabBarProps> = ({
       <View onTouchEnd={() => onTabChange('week')} style={styles.tab}>
         <Text style={[styles.tabText, activeTab === 'week' && styles.tabTextActive]}>Week</Text>
       </View>
-      {showReportTab && (
-        <View onTouchEnd={() => onTabChange('report')} style={styles.tab}>
-          <Text style={[styles.tabText, activeTab === 'report' && styles.tabTextActive]}>
-            Report
+      {showCalendarTab && (
+        <View onTouchEnd={() => onTabChange('calendar')} style={styles.tab}>
+          <Text style={[styles.tabText, activeTab === 'calendar' && styles.tabTextActive]}>
+            Calendar
           </Text>
         </View>
       )}

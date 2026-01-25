@@ -54,6 +54,7 @@ export default function TeacherScreen() {
   const [classDetailsOpen, setClassDetailsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
 
   const styles = getStyles(theme);
@@ -319,62 +320,135 @@ export default function TeacherScreen() {
         visible={profileOpen}
       >
         <ScrollView contentContainerStyle={styles.profileContent}>
-          <View style={styles.profileLargeCircle}>
-            <Text style={styles.profileLargeText}>
-              {user?.name?.charAt(0).toUpperCase() || 'T'}
-            </Text>
+          {/* Header with Avatar and Icons */}
+          <View style={styles.profileHeader}>
+            {/* Pencil Icon Left - Profile Photo Upload */}
+            <TouchableOpacity
+              onPress={() => {
+                Alert.alert(
+                  'Profile Photo',
+                  'Profile photo upload feature will be implemented soon!',
+                  [{ text: 'OK' }]
+                );
+              }}
+              style={styles.iconButton}
+            >
+              <Text style={styles.iconText}>✎</Text>
+            </TouchableOpacity>
+
+            {/* Avatar */}
+            <View style={styles.profileLargeCircle}>
+              <Text style={styles.profileLargeText}>
+                {user?.name?.charAt(0).toUpperCase() || 'T'}
+              </Text>
+            </View>
+
+            {/* Gear Icon Right - Open Settings */}
+            <TouchableOpacity
+              onPress={() => {
+                setProfileOpen(false);
+                setSettingsOpen(true);
+              }}
+              style={styles.iconButton}
+            >
+              <Text style={styles.iconText}>⚙</Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.detailsContainer}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Name:</Text>
-              <Text style={styles.detailValue}>{user?.name ?? 'N/A'}</Text>
+          {/* Name and Role Tag */}
+          <Text style={styles.profileName}>{user?.name ?? 'Teacher'}</Text>
+          <View style={styles.roleTag}>
+            <Text style={styles.roleTagText}>TEACHER</Text>
+          </View>
+
+          {/* Attendance Stats Card */}
+          <View style={styles.statsCard}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>--</Text>
+              <Text style={styles.statLabel}>Attendance</Text>
             </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Employee ID:</Text>
-              <Text style={styles.detailValue}>{user?.id ?? 'N/A'}</Text>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>--</Text>
+              <Text style={styles.statLabel}>Present</Text>
             </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Email:</Text>
-              <Text style={styles.detailValue}>{user?.email ?? 'N/A'}</Text>
-            </View>
-
-            {user?.phone && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Phone:</Text>
-                <Text style={styles.detailValue}>{user.phone}</Text>
-              </View>
-            )}
-
-            {user?.departmentId && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Department:</Text>
-                <Text style={styles.detailValue}>Dept. {user.departmentId}</Text>
-              </View>
-            )}
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Role:</Text>
-              <Text style={styles.detailValue}>Teacher</Text>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>--</Text>
+              <Text style={styles.statLabel}>Absent</Text>
             </View>
           </View>
 
+          {/* Attendance Overview */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Attendance Overview</Text>
+            <View style={styles.chartPlaceholder}>
+              <Text style={styles.chartText}>📊 Graph visualization</Text>
+              <Text style={styles.chartSubtext}>Showing your attendance trend</Text>
+            </View>
+          </View>
+
+          {/* Subject-wise Report */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Subject-wise Report</Text>
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <Text style={{ color: theme.colors.textSecondary, textAlign: 'center' }}>
+                Attendance reports are available for students only.{'\n'}
+                Use the class management section to mark attendance.
+              </Text>
+            </View>
+          </View>
+
+          {/* Action Buttons - Removed from here, moved to Settings Modal */}
+        </ScrollView>
+      </FullScreenModal>
+
+      {/* Settings Modal */}
+      <FullScreenModal
+        onClose={() => setSettingsOpen(false)}
+        title="Settings"
+        visible={settingsOpen}
+      >
+        <ScrollView contentContainerStyle={styles.profileContent}>
+          {/* Account Info Section */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Account Info</Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Name:</Text>
+              <Text style={styles.infoValue}>{user?.name ?? 'N/A'}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Email:</Text>
+              <Text style={styles.infoValue}>{user?.email ?? 'N/A'}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Department:</Text>
+              <Text style={styles.infoValue}>{(user as any)?.departmentId ?? 'N/A'}</Text>
+            </View>
+          </View>
+
+          {/* Application Settings Section */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Application Settings</Text>
+            <TouchableOpacity style={styles.settingItem}>
+              <Text style={styles.settingText}>Notification Preferences</Text>
+              <Text style={styles.settingArrow}>›</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.settingItem}>
+              <Text style={styles.settingText}>Theme Settings</Text>
+              <Text style={styles.settingArrow}>›</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.settingItem}>
+              <Text style={styles.settingText}>Language</Text>
+              <Text style={styles.settingArrow}>›</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               onPress={() => {
-                setProfileOpen(false);
-                navigation.navigate('Settings');
-              }}
-              style={styles.settingsButton}
-            >
-              <Text style={styles.buttonText}>Application Settings</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                setProfileOpen(false);
+                setSettingsOpen(false);
                 navigation.navigate('PasswordReset');
               }}
               style={styles.resetButton}
@@ -594,6 +668,24 @@ const getStyles = (theme: any) => StyleSheet.create({
   profileContent: {
     padding: 20,
   },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  iconButton: {
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconText: {
+    fontSize: 20,
+    color: theme.colors.primary,
+  },
   profileLargeCircle: {
     alignItems: 'center',
     alignSelf: 'center',
@@ -604,6 +696,115 @@ const getStyles = (theme: any) => StyleSheet.create({
     marginBottom: 24,
     overflow: 'hidden',
     width: 120,
+  },
+  profileName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginTop: 12,
+  },
+  roleTag: {
+    alignSelf: 'center',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  roleTagText: {
+    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  statsCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginTop: 4,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: theme.colors.border,
+  },
+  sectionCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  chartPlaceholder: {
+    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+    borderRadius: 8,
+    padding: 32,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  chartText: {
+    fontSize: 16,
+    color: theme.colors.text,
+    marginBottom: 4,
+  },
+  chartSubtext: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+  subjectRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  subjectName: {
+    width: 100,
+    fontSize: 14,
+    color: theme.colors.text,
+  },
+  subjectBarContainer: {
+    flex: 1,
+    height: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 4,
+    marginHorizontal: 12,
+    overflow: 'hidden',
+  },
+  subjectBar: {
+    height: '100%',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 4,
+  },
+  subjectPercent: {
+    width: 40,
+    textAlign: 'right',
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text,
   },
   profileLargeText: {
     color: '#fff',
@@ -666,6 +867,40 @@ const getStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.error,
     borderRadius: 10,
     paddingVertical: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  infoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+  },
+  infoValue: {
+    fontSize: 14,
+    color: theme.colors.text,
+    flex: 1,
+    textAlign: 'right',
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  settingText: {
+    fontSize: 15,
+    color: theme.colors.text,
+  },
+  settingArrow: {
+    fontSize: 20,
+    color: theme.colors.textSecondary,
   },
   studentsTitle: {
     color: theme.colors.text,

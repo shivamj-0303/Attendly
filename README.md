@@ -236,16 +236,6 @@ TRIGGER: Merge to main
 │
 └─ Production deployment complete
 
-═══════════════════════════════════════════════════════════════════
-
-Environment Progression:
-
-Local Dev → PR Preview → Production
-    ↓            ↓            ↓
-localhost:   pr-123.      attendly.
-8080/5173   vercel.app   vercel.app
-```
-
 ### Deployment Matrix
 
 | Environment | URL | Database | Deploy Trigger | Rollback |
